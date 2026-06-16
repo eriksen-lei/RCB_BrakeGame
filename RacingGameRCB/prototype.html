@@ -113,24 +113,15 @@
       radialDamping: 2.2
     };
 
-    const trackSegments = [
-      { type: "line", from: { x: 0, y: 420 }, to: { x: 0, y: -360 } },
-      { type: "arc", center: { x: 160, y: -360 }, radius: 160, start: Math.PI, end: Math.PI * 1.5, dir: 1 },
-      { type: "line", from: { x: 160, y: -520 }, to: { x: 520, y: -520 } },
-      { type: "arc", center: { x: 520, y: -680 }, radius: 160, start: Math.PI / 2, end: -Math.PI / 2, dir: -1 },
-      { type: "line", from: { x: 520, y: -840 }, to: { x: 80, y: -840 } },
-      { type: "arc", center: { x: 80, y: -1000 }, radius: 160, start: Math.PI / 2, end: Math.PI, dir: 1 },
-      { type: "line", from: { x: -80, y: -1000 }, to: { x: -80, y: -1700 } },
-      { type: "arc", center: { x: 80, y: -1700 }, radius: 160, start: Math.PI, end: Math.PI * 1.5, dir: 1 },
-      { type: "line", from: { x: 80, y: -1860 }, to: { x: 520, y: -1860 } }
-    ];
+    let trackSegments = [];
+    let anchors = [];
+    let boostPads = [];
 
-    const anchors = [
-      { x: 160, y: -360, r: 160 },
-      { x: 520, y: -680, r: 160 },
-      { x: 80, y: -1000, r: 160 },
-      { x: 80, y: -1700, r: 160 }
-    ];
+    const generator = {
+      point: { x: 0, y: 420 },
+      heading: -Math.PI / 2,
+      section: 0
+    };
 
     const car = {
       x: 0,
@@ -148,6 +139,7 @@
       orbitDir: 1,
       detachedFlash: 0,
       slideTimer: 0,
+      boostTimer: 0,
       crashed: false
     };
 
@@ -169,12 +161,100 @@
       car.anchor = null;
       car.detachedFlash = 0;
       car.slideTimer = 0;
+      car.boostTimer = 0;
       car.crashed = false;
       skidMarks.length = 0;
       activeAnchorIndex = 0;
+      resetGeneratedTrack();
       gameOverEl.classList.remove("visible");
       camera.x = 0;
       camera.y = 0;
+    }
+
+    function resetGeneratedTrack() {
+      trackSegments = [];
+      anchors = [];
+      boostPads = [];
+      cachedWorldTrackPoints = null;
+      generator.point = { x: 0, y: 420 };
+      generator.heading = -Math.PI / 2;
+      generator.section = 0;
+
+      for (let i = 0; i < 8; i += 1) {
+        generateNextTrackSection();
+      }
+    }
+
+    function generateNextTrackSection() {
+      const straightLength = generator.section === 0 ? 780 : 620 + (generator.section % 3) * 110;
+      const from = { ...generator.point };
+      const to = {
+        x: from.x + Math.cos(generator.heading) * straightLength,
+        y: from.y + Math.sin(generator.heading) * straightLength
+      };
+
+      trackSegments.push({ type: "line", from, to, long: straightLength >= 620 });
+      addBoostPadsOnStraight(from, to, generator.heading, straightLength);
+      generator.point = to;
+
+      const turnAbs = Math.PI / 2;
+      const turnDir = chooseTurnDirection(generator.heading, generator.section);
+      const radius = 160;
+      const leftX = -Math.sin(generator.heading);
+      const leftY = Math.cos(generator.heading);
+      const center = {
+        x: generator.point.x + leftX * radius * turnDir,
+        y: generator.point.y + leftY * radius * turnDir
+      };
+      const start = Math.atan2(generator.point.y - center.y, generator.point.x - center.x);
+      const end = start + turnDir * turnAbs;
+      const exit = {
+        x: center.x + Math.cos(end) * radius,
+        y: center.y + Math.sin(end) * radius
+      };
+
+      trackSegments.push({ type: "arc", center, radius, start, end, dir: turnDir });
+      anchors.push({ x: center.x, y: center.y, r: radius });
+      generator.point = exit;
+      generator.heading += turnDir * turnAbs;
+      generator.section += 1;
+      cachedWorldTrackPoints = null;
+    }
+
+    function chooseTurnDirection(heading, section) {
+      const normalized = normalizeAngle(heading);
+      const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
+      if (horizontal) {
+        return Math.cos(normalized) > 0 ? -1 : 1;
+      }
+
+      const candidate = section % 2 === 0 ? 1 : -1;
+      const nextHeading = heading + candidate * Math.PI / 2;
+      const driftX = generator.point.x + Math.cos(nextHeading) * 800;
+      if (driftX > 760) return -1;
+      if (driftX < -760) return 1;
+      return candidate;
+    }
+
+    function addBoostPadsOnStraight(from, to, heading, length) {
+      if (length < 620) return;
+
+      const count = length > 760 ? 2 : 1;
+      for (let i = 0; i < count; i += 1) {
+        const t = count === 1 ? 0.48 : 0.36 + i * 0.22;
+        boostPads.push({
+          x: from.x + (to.x - from.x) * t,
+          y: from.y + (to.y - from.y) * t,
+          angle: heading,
+          used: false
+        });
+      }
+    }
+
+    function ensureTrackAhead() {
+      while (anchors.length - activeAnchorIndex < 5) {
+        generateNextTrackSection();
+      }
     }
 
     function resize() {
@@ -235,11 +315,12 @@
       car.anchor = null;
       car.detachedFlash = 0.22;
       car.slideTimer = 0.78;
-      activeAnchorIndex = Math.min(activeAnchorIndex + 1, anchors.length - 1);
     }
 
     function update(dt) {
       if (car.crashed) return;
+
+      ensureTrackAhead();
 
       if (input.space && !car.attached) {
         const anchor = getNearestAnchor();
@@ -252,10 +333,13 @@
 
       if (car.attached && car.anchor) {
         applyRopePull(dt);
+      } else {
+        applyStraightCentering(dt);
       }
 
       car.x += car.vx * dt;
       car.y += car.vy * dt;
+      applyBoostPads();
       car.vx *= car.attached ? 0.998 : 0.999;
       car.vy *= car.attached ? 0.998 : 0.999;
       car.speed = Math.hypot(car.vx, car.vy);
@@ -272,7 +356,9 @@
 
       car.detachedFlash = Math.max(0, car.detachedFlash - dt);
       car.slideTimer = Math.max(0, car.slideTimer - dt);
+      car.boostTimer = Math.max(0, car.boostTimer - dt);
       updateSkidMarks(dt);
+      advanceActiveAnchor();
 
       if (isOutsideRoad()) {
         crash();
@@ -280,6 +366,20 @@
 
       camera.x += (car.x - camera.x) * Math.min(1, dt * 5);
       camera.y += (car.y - camera.y) * Math.min(1, dt * 5);
+    }
+
+    function advanceActiveAnchor() {
+      if (car.attached || activeAnchorIndex >= anchors.length - 1) return;
+
+      const current = anchors[activeAnchorIndex];
+      const next = anchors[activeAnchorIndex + 1];
+      const currentDistance = Math.hypot(current.x - car.x, current.y - car.y);
+      const nextDistance = Math.hypot(next.x - car.x, next.y - car.y);
+
+      if (currentDistance > rope.maxReach * 1.1 && nextDistance < rope.maxReach) {
+        activeAnchorIndex += 1;
+        ensureTrackAhead();
+      }
     }
 
     function applyRopePull(dt) {
@@ -303,6 +403,56 @@
       }
     }
 
+    function applyStraightCentering(dt) {
+      const info = nearestLongStraightInfo(car.x, car.y);
+      if (!info || info.distance > road.width * 0.42 || car.slideTimer > 0) return;
+
+      const toCenterX = info.closest.x - car.x;
+      const toCenterY = info.closest.y - car.y;
+      const lateralVelocity = car.vx * info.normal.x + car.vy * info.normal.y;
+      car.vx += (toCenterX * 3.2 - info.normal.x * lateralVelocity * 3.6) * dt;
+      car.vy += (toCenterY * 3.2 - info.normal.y * lateralVelocity * 3.6) * dt;
+    }
+
+    function nearestLongStraightInfo(x, y) {
+      let best = null;
+
+      for (const segment of trackSegments) {
+        if (segment.type !== "line" || !segment.long) continue;
+        const info = projectPointToSegment(x, y, segment.from, segment.to);
+        if (info.t < 0.08 || info.t > 0.92) continue;
+
+        if (!best || info.distance < best.distance) {
+          best = info;
+        }
+      }
+
+      return best;
+    }
+
+    function applyBoostPads() {
+      for (const pad of boostPads) {
+        if (pad.used || Math.abs(pad.y - car.y) > 900 || Math.abs(pad.x - car.x) > 900) continue;
+        const dx = car.x - pad.x;
+        const dy = car.y - pad.y;
+        const forwardX = Math.cos(pad.angle);
+        const forwardY = Math.sin(pad.angle);
+        const sideX = -forwardY;
+        const sideY = forwardX;
+        const along = dx * forwardX + dy * forwardY;
+        const lateral = dx * sideX + dy * sideY;
+
+        if (Math.abs(along) < 54 && Math.abs(lateral) < road.width * 0.3) {
+          pad.used = true;
+          car.boostTimer = 0.8;
+          const currentSpeed = Math.max(1, Math.hypot(car.vx, car.vy));
+          const boostSpeed = Math.max(470, currentSpeed * 1.22);
+          car.vx = (car.vx / currentSpeed) * boostSpeed;
+          car.vy = (car.vy / currentSpeed) * boostSpeed;
+        }
+      }
+    }
+
     function crash() {
       car.crashed = true;
       car.attached = false;
@@ -322,6 +472,7 @@
       ctx.clearRect(0, 0, width, height);
       drawGrass(width, height);
       drawTrack();
+      drawBoostPads();
       drawSkidMarks();
       drawAnchors();
       drawRope();
@@ -364,16 +515,35 @@
       ctx.lineWidth = 4;
       drawOffsetPolyline(points, -road.width / 2 + 10);
       drawOffsetPolyline(points, road.width / 2 - 10);
-
-      ctx.strokeStyle = "#f6d84a";
-      ctx.lineWidth = 5;
-      ctx.setLineDash([34, 28]);
-      drawPolyline(points);
-      ctx.setLineDash([]);
     }
 
     function buildTrackPoints() {
-      return buildWorldTrackPoints().map((p) => worldToScreen(p.x, p.y));
+      return buildVisibleWorldTrackPoints().map((p) => worldToScreen(p.x, p.y));
+    }
+
+    function buildVisibleWorldTrackPoints() {
+      const points = buildWorldTrackPoints();
+      const margin = 260;
+      let first = -1;
+      let last = -1;
+
+      for (let i = 0; i < points.length; i += 1) {
+        const p = points[i];
+        const s = worldToScreen(p.x, p.y);
+        const onScreen =
+          s.x >= -margin &&
+          s.x <= window.innerWidth + margin &&
+          s.y >= -margin &&
+          s.y <= window.innerHeight + margin;
+
+        if (onScreen) {
+          if (first === -1) first = i;
+          last = i;
+        }
+      }
+
+      if (first === -1) return points;
+      return points.slice(Math.max(0, first - 1), Math.min(points.length, last + 2));
     }
 
     function buildWorldTrackPoints() {
@@ -437,6 +607,10 @@
     }
 
     function distanceToSegment(x, y, a, b) {
+      return projectPointToSegment(x, y, a, b).distance;
+    }
+
+    function projectPointToSegment(x, y, a, b) {
       const abx = b.x - a.x;
       const aby = b.y - a.y;
       const apx = x - a.x;
@@ -445,7 +619,14 @@
       const t = Math.max(0, Math.min(1, (apx * abx + apy * aby) / lengthSq));
       const px = a.x + abx * t;
       const py = a.y + aby * t;
-      return Math.hypot(x - px, y - py);
+      const length = Math.sqrt(lengthSq);
+      return {
+        t,
+        closest: { x: px, y: py },
+        distance: Math.hypot(x - px, y - py),
+        tangent: { x: abx / length, y: aby / length },
+        normal: { x: -aby / length, y: abx / length }
+      };
     }
 
     function drawPolyline(points) {
@@ -485,6 +666,33 @@
       ctx.arc(p.x, p.y, active ? 15 : 11, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
+    }
+
+    function drawBoostPads() {
+      for (const pad of boostPads) {
+        const p = worldToScreen(pad.x, pad.y);
+        if (p.x < -160 || p.x > window.innerWidth + 160 || p.y < -160 || p.y > window.innerHeight + 160) continue;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(pad.angle + Math.PI / 2);
+        ctx.globalAlpha = pad.used ? 0.35 : 1;
+        ctx.fillStyle = "rgba(28, 37, 42, 0.32)";
+        roundRect(-46, -42, 92, 84, 8);
+        ctx.fill();
+        ctx.fillStyle = "#ffd84d";
+        ctx.beginPath();
+        ctx.moveTo(0, -38);
+        ctx.lineTo(38, 4);
+        ctx.lineTo(16, 4);
+        ctx.lineTo(16, 34);
+        ctx.lineTo(-16, 34);
+        ctx.lineTo(-16, 4);
+        ctx.lineTo(-38, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
     }
 
     function drawRope() {
@@ -598,6 +806,11 @@
       return Math.atan2(Math.sin(angle), Math.cos(angle));
     }
 
+    function normalizeAngle(angle) {
+      const full = Math.PI * 2;
+      return ((angle % full) + full) % full;
+    }
+
     function loop(now) {
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
@@ -632,6 +845,7 @@
       input.space = false;
     });
 
+    reset();
     requestAnimationFrame(loop);
   </script>
 </body>
