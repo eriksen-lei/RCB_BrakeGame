@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sling Drift Core Prototype</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #58b866;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      user-select: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: #58b866;
+    }
+
+    .hint {
+      position: fixed;
+      left: 24px;
+      top: 22px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.78);
+      color: #fff;
+      font-size: 15px;
+      line-height: 1.6;
+      pointer-events: none;
+    }
+
+    .hint strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #ffd84d;
+      font-size: 20px;
+    }
+
+    .game-over {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      display: none;
+      min-width: 300px;
+      padding: 24px 28px;
+      border-radius: 10px;
+      background: rgba(15, 20, 24, 0.9);
+      color: #fff;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .game-over.visible {
+      display: block;
+    }
+
+    .game-over strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #ff554a;
+      font-size: 34px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div class="hint">
+    <strong>Sling Drift 核心机制</strong>
+    按住 Space：连接最近锚点绕弯<br />
+    松开 Space：离开锚点沿切线前进<br />
+    R：重置
+  </div>
+
+  <div class="game-over" id="gameOver">
+    <strong>撞到赛道边缘</strong>
+    按 R 重置
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const gameOverEl = document.getElementById("gameOver");
+
+    const input = {
+      space: false
+    };
+
+    const camera = {
+      x: 0,
+      y: 0
+    };
+
+    const road = {
+      width: 220
+    };
+
+    const rope = {
+      maxReach: 560,
+      pullStrength: 620,
+      distancePull: 1.15,
+      radialDamping: 2.2
+    };
+
+    const trackSegments = [
+      { type: "line", from: { x: 0, y: 420 }, to: { x: 0, y: -360 } },
+      { type: "arc", center: { x: 160, y: -360 }, radius: 160, start: Math.PI, end: Math.PI * 1.5, dir: 1 },
+      { type: "line", from: { x: 160, y: -520 }, to: { x: 520, y: -520 } },
+      { type: "arc", center: { x: 520, y: -680 }, radius: 160, start: Math.PI / 2, end: -Math.PI / 2, dir: -1 },
+      { type: "line", from: { x: 520, y: -840 }, to: { x: 80, y: -840 } },
+      { type: "arc", center: { x: 80, y: -1000 }, radius: 160, start: Math.PI / 2, end: Math.PI, dir: 1 },
+      { type: "line", from: { x: -80, y: -1000 }, to: { x: -80, y: -1700 } },
+      { type: "arc", center: { x: 80, y: -1700 }, radius: 160, start: Math.PI, end: Math.PI * 1.5, dir: 1 },
+      { type: "line", from: { x: 80, y: -1860 }, to: { x: 520, y: -1860 } }
+    ];
+
+    const anchors = [
+      { x: 160, y: -360, r: 160 },
+      { x: 520, y: -680, r: 160 },
+      { x: 80, y: -1000, r: 160 },
+      { x: 80, y: -1700, r: 160 }
+    ];
+
+    const car = {
+      x: 0,
+      y: 260,
+      vx: 0,
+      vy: -280,
+      angle: -Math.PI / 2,
+      visualAngle: -Math.PI / 2,
+      speed: 300,
+      maxFreeSpeed: 370,
+      attached: false,
+      anchor: null,
+      orbitRadius: 0,
+      orbitAngle: 0,
+      orbitDir: 1,
+      detachedFlash: 0,
+      slideTimer: 0,
+      crashed: false
+    };
+
+    const skidMarks = [];
+    let cachedWorldTrackPoints = null;
+    let lastTime = performance.now();
+    let activeAnchorIndex = 0;
+
+    function reset() {
+      car.x = 0;
+      car.y = 260;
+      car.vx = 0;
+      car.vy = -280;
+      car.angle = -Math.PI / 2;
+      car.visualAngle = -Math.PI / 2;
+      car.speed = 300;
+      car.maxFreeSpeed = 370;
+      car.attached = false;
+      car.anchor = null;
+      car.detachedFlash = 0;
+      car.slideTimer = 0;
+      car.crashed = false;
+      skidMarks.length = 0;
+      activeAnchorIndex = 0;
+      gameOverEl.classList.remove("visible");
+      camera.x = 0;
+      camera.y = 0;
+    }
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.floor(window.innerWidth * dpr);
+      const height = Math.floor(window.innerHeight * dpr);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function worldToScreen(x, y) {
+      return {
+        x: x - camera.x + window.innerWidth / 2,
+        y: y - camera.y + window.innerHeight * 0.68
+      };
+    }
+
+    function screenToWorld(x, y) {
+      return {
+        x: x + camera.x - window.innerWidth / 2,
+        y: y + camera.y - window.innerHeight * 0.68
+      };
+    }
+
+    function getNearestAnchor() {
+      const anchor = anchors[activeAnchorIndex];
+      if (!anchor) return null;
+
+      const dx = anchor.x - car.x;
+      const dy = anchor.y - car.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance <= rope.maxReach) return anchor;
+      return null;
+    }
+
+    function attachToAnchor(anchor) {
+      car.attached = true;
+      car.anchor = anchor;
+      car.speed = Math.max(300, Math.hypot(car.vx, car.vy));
+      car.visualAngle = car.angle;
+    }
+
+    function detachFromAnchor() {
+      if (!car.attached) return;
+
+      const currentSpeed = Math.max(1, Math.hypot(car.vx, car.vy));
+      const releaseSpeed = Math.min(car.maxFreeSpeed, currentSpeed * 1.04);
+      car.vx = (car.vx / currentSpeed) * releaseSpeed;
+      car.vy = (car.vy / currentSpeed) * releaseSpeed;
+      car.speed = releaseSpeed;
+      const heading = Math.atan2(car.vy, car.vx);
+      car.angle = Math.atan2(car.vy, car.vx);
+      car.visualAngle = heading - shortAngle(heading - car.visualAngle) * 0.34;
+      car.attached = false;
+      car.anchor = null;
+      car.detachedFlash = 0.22;
+      car.slideTimer = 0.78;
+      activeAnchorIndex = Math.min(activeAnchorIndex + 1, anchors.length - 1);
+    }
+
+    function update(dt) {
+      if (car.crashed) return;
+
+      if (input.space && !car.attached) {
+        const anchor = getNearestAnchor();
+        if (anchor) attachToAnchor(anchor);
+      }
+
+      if (!input.space && car.attached) {
+        detachFromAnchor();
+      }
+
+      if (car.attached && car.anchor) {
+        applyRopePull(dt);
+      }
+
+      car.x += car.vx * dt;
+      car.y += car.vy * dt;
+      car.vx *= car.attached ? 0.998 : 0.999;
+      car.vy *= car.attached ? 0.998 : 0.999;
+      car.speed = Math.hypot(car.vx, car.vy);
+      car.angle = Math.atan2(car.vy, car.vx);
+
+      if (car.attached) {
+        car.visualAngle += shortAngle(car.angle - car.visualAngle) * Math.min(1, dt * 7);
+      } else if (car.slideTimer > 0) {
+        car.visualAngle += shortAngle(car.angle - car.visualAngle) * dt * 2.4;
+        addSkidMark();
+      } else {
+        car.visualAngle += shortAngle(car.angle - car.visualAngle) * Math.min(1, dt * 10);
+      }
+
+      car.detachedFlash = Math.max(0, car.detachedFlash - dt);
+      car.slideTimer = Math.max(0, car.slideTimer - dt);
+      updateSkidMarks(dt);
+
+      if (isOutsideRoad()) {
+        crash();
+      }
+
+      camera.x += (car.x - camera.x) * Math.min(1, dt * 5);
+      camera.y += (car.y - camera.y) * Math.min(1, dt * 5);
+    }
+
+    function applyRopePull(dt) {
+      const dx = car.anchor.x - car.x;
+      const dy = car.anchor.y - car.y;
+      const distance = Math.max(1, Math.hypot(dx, dy));
+      const nx = dx / distance;
+      const ny = dy / distance;
+      const radialVelocity = car.vx * nx + car.vy * ny;
+      const pull = rope.pullStrength + distance * rope.distancePull - radialVelocity * rope.radialDamping;
+      const ax = nx * pull;
+      const ay = ny * pull;
+
+      car.vx += ax * dt;
+      car.vy += ay * dt;
+
+      const speed = Math.hypot(car.vx, car.vy);
+      if (speed > car.maxFreeSpeed) {
+        car.vx = (car.vx / speed) * car.maxFreeSpeed;
+        car.vy = (car.vy / speed) * car.maxFreeSpeed;
+      }
+    }
+
+    function crash() {
+      car.crashed = true;
+      car.attached = false;
+      car.anchor = null;
+      car.vx = 0;
+      car.vy = 0;
+      car.speed = 0;
+      input.space = false;
+      gameOverEl.classList.add("visible");
+    }
+
+    function draw() {
+      resize();
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      ctx.clearRect(0, 0, width, height);
+      drawGrass(width, height);
+      drawTrack();
+      drawSkidMarks();
+      drawAnchors();
+      drawRope();
+      drawCar();
+    }
+
+    function drawGrass(width, height) {
+      ctx.fillStyle = "#58b866";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.strokeStyle = "#84d37f";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 80; i += 1) {
+        const p = screenToWorld((i * 97) % width, (i * 61) % height);
+        const s = worldToScreen(p.x + Math.sin(i) * 20, p.y + (camera.y * 0.18) % 120);
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x + 80, s.y + 24);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawTrack() {
+      const points = buildTrackPoints();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      ctx.strokeStyle = "#263036";
+      ctx.lineWidth = road.width;
+      drawPolyline(points);
+
+      ctx.strokeStyle = "#3a444a";
+      ctx.lineWidth = road.width - 24;
+      drawPolyline(points);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.82)";
+      ctx.lineWidth = 4;
+      drawOffsetPolyline(points, -road.width / 2 + 10);
+      drawOffsetPolyline(points, road.width / 2 - 10);
+
+      ctx.strokeStyle = "#f6d84a";
+      ctx.lineWidth = 5;
+      ctx.setLineDash([34, 28]);
+      drawPolyline(points);
+      ctx.setLineDash([]);
+    }
+
+    function buildTrackPoints() {
+      return buildWorldTrackPoints().map((p) => worldToScreen(p.x, p.y));
+    }
+
+    function buildWorldTrackPoints() {
+      if (cachedWorldTrackPoints) return cachedWorldTrackPoints;
+
+      const points = [];
+
+      for (const segment of trackSegments) {
+        if (segment.type === "line") {
+          addLinePoints(points, segment.from, segment.to, 28);
+        } else {
+          addArcPoints(points, segment.center, segment.radius, segment.start, segment.end, segment.dir, 36);
+        }
+      }
+
+      cachedWorldTrackPoints = points;
+      return points;
+    }
+
+    function addLinePoints(points, from, to, steps) {
+      for (let i = points.length ? 1 : 0; i <= steps; i += 1) {
+        const t = i / steps;
+        points.push({
+          x: from.x + (to.x - from.x) * t,
+          y: from.y + (to.y - from.y) * t
+        });
+      }
+    }
+
+    function addArcPoints(points, center, radius, start, end, dir, steps) {
+      let total = end - start;
+      if (dir > 0 && total < 0) total += Math.PI * 2;
+      if (dir < 0 && total > 0) total -= Math.PI * 2;
+
+      for (let i = points.length ? 1 : 0; i <= steps; i += 1) {
+        const t = i / steps;
+        const angle = start + total * t;
+        points.push({
+          x: center.x + Math.cos(angle) * radius,
+          y: center.y + Math.sin(angle) * radius
+        });
+      }
+    }
+
+    function isOutsideRoad() {
+      const nearest = distanceToTrackCenter(car.x, car.y);
+      const carRadius = 18;
+      return nearest > road.width / 2 - carRadius;
+    }
+
+    function distanceToTrackCenter(x, y) {
+      const points = buildWorldTrackPoints();
+      let best = Infinity;
+
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const distance = distanceToSegment(x, y, points[i], points[i + 1]);
+        if (distance < best) best = distance;
+      }
+
+      return best;
+    }
+
+    function distanceToSegment(x, y, a, b) {
+      const abx = b.x - a.x;
+      const aby = b.y - a.y;
+      const apx = x - a.x;
+      const apy = y - a.y;
+      const lengthSq = abx * abx + aby * aby || 1;
+      const t = Math.max(0, Math.min(1, (apx * abx + apy * aby) / lengthSq));
+      const px = a.x + abx * t;
+      const py = a.y + aby * t;
+      return Math.hypot(x - px, y - py);
+    }
+
+    function drawPolyline(points) {
+      ctx.beginPath();
+      points.forEach((point, index) => {
+        if (index === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      });
+      ctx.stroke();
+    }
+
+    function drawOffsetPolyline(points, offset) {
+      ctx.beginPath();
+      points.forEach((point, index) => {
+        const prev = points[Math.max(0, index - 1)];
+        const next = points[Math.min(points.length - 1, index + 1)];
+        const angle = Math.atan2(next.y - prev.y, next.x - prev.x) + Math.PI / 2;
+        const x = point.x + Math.cos(angle) * offset;
+        const y = point.y + Math.sin(angle) * offset;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function drawAnchors() {
+      const anchor = anchors[activeAnchorIndex];
+      if (!anchor || car.crashed) return;
+
+      const p = worldToScreen(anchor.x, anchor.y);
+      if (p.y < -80 || p.y > window.innerHeight + 80) return;
+
+      const active = car.anchor === anchor;
+      ctx.save();
+      ctx.fillStyle = active ? "#ffdd48" : "#ffffff";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, active ? 15 : 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawRope() {
+      if (!car.attached || !car.anchor) return;
+
+      const a = worldToScreen(car.anchor.x, car.anchor.y);
+      const c = worldToScreen(car.x, car.y);
+      ctx.strokeStyle = "#ffd84d";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(c.x, c.y);
+      ctx.stroke();
+    }
+
+    function addSkidMark() {
+      if (skidMarks.length > 0) {
+        const last = skidMarks[skidMarks.length - 1];
+        if (Math.hypot(last.x - car.x, last.y - car.y) < 18) return;
+      }
+
+      skidMarks.push({
+        x: car.x,
+        y: car.y,
+        angle: car.visualAngle,
+        life: 0.9
+      });
+
+      if (skidMarks.length > 80) skidMarks.shift();
+    }
+
+    function updateSkidMarks(dt) {
+      for (const mark of skidMarks) {
+        mark.life -= dt;
+      }
+
+      while (skidMarks.length && skidMarks[0].life <= 0) {
+        skidMarks.shift();
+      }
+    }
+
+    function drawSkidMarks() {
+      for (const mark of skidMarks) {
+        const p = worldToScreen(mark.x, mark.y);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(mark.angle + Math.PI / 2);
+        ctx.globalAlpha = Math.max(0, mark.life / 0.9) * 0.42;
+        ctx.strokeStyle = "#151a1d";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-11, 10);
+        ctx.lineTo(-11, 34);
+        ctx.moveTo(11, 10);
+        ctx.lineTo(11, 34);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawCar() {
+      const p = worldToScreen(car.x, car.y);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(car.visualAngle + Math.PI / 2);
+
+      ctx.fillStyle = "rgba(0,0,0,0.24)";
+      ctx.beginPath();
+      ctx.ellipse(0, 18, 22, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#f2c12f";
+      roundRect(-15, -28, 30, 56, 9);
+      ctx.fill();
+
+      ctx.fillStyle = "#20272b";
+      roundRect(-11, -18, 22, 16, 5);
+      ctx.fill();
+
+      ctx.fillStyle = "#e74b3f";
+      roundRect(-13, 8, 26, 16, 5);
+      ctx.fill();
+
+      if (car.detachedFlash > 0) {
+        ctx.save();
+        ctx.globalAlpha = car.detachedFlash / 0.22;
+        ctx.strokeStyle = "#ffd84d";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-24, 36);
+        ctx.lineTo(0, 66);
+        ctx.lineTo(24, 36);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function shortAngle(angle) {
+      return Math.atan2(Math.sin(angle), Math.cos(angle));
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Space") {
+        event.preventDefault();
+        input.space = true;
+      }
+      if (event.code === "KeyR") reset();
+    });
+
+    window.addEventListener("keyup", (event) => {
+      if (event.code === "Space") {
+        input.space = false;
+      }
+    });
+
+    window.addEventListener("pointerdown", () => {
+      input.space = true;
+    });
+
+    window.addEventListener("pointerup", () => {
+      input.space = false;
+    });
+
+    window.addEventListener("blur", () => {
+      input.space = false;
+    });
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
