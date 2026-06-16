@@ -73,37 +73,143 @@
       font-weight: 700;
     }
 
-    .ai-control {
+    .speedometer {
       position: fixed;
-      left: 24px;
-      top: 340px;
-      width: 190px;
-      padding: 12px 14px;
+      right: 24px;
+      bottom: 22px;
+      min-width: 142px;
+      padding: 14px 16px;
       border-radius: 8px;
-      background: rgba(15, 20, 24, 0.78);
+      background: rgba(15, 20, 24, 0.82);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
       color: #fff;
-      font-size: 14px;
-      line-height: 1.45;
+      pointer-events: none;
+      z-index: 2;
     }
 
-    .ai-control strong {
+    .speedometer.hidden {
+      display: none;
+    }
+
+    .speed-readout {
+      text-align: center;
+    }
+
+    .speed-value {
+      display: block;
+      color: #ffd84d;
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .speed-unit {
+      display: block;
+      margin-top: 3px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .start-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(24px, 5vw, 64px);
+      background:
+        linear-gradient(135deg, rgba(20, 30, 34, 0.98), rgba(38, 48, 54, 0.96)),
+        #1c252a;
+      color: #fff;
+      z-index: 5;
+    }
+
+    .start-screen.hidden {
+      display: none;
+    }
+
+    .menu-panel {
+      width: min(560px, 100%);
+    }
+
+    .menu-panel h1 {
+      margin: 0 0 16px;
+      color: #ffd84d;
+      font-size: clamp(34px, 6vw, 58px);
+      letter-spacing: 0;
+    }
+
+    .menu-panel p {
+      margin: 0 0 24px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .menu-view.hidden {
+      display: none;
+    }
+
+    .menu-section {
+      margin-top: 16px;
+    }
+
+    .menu-section strong {
       display: block;
       margin-bottom: 8px;
-      color: #ffd84d;
-      font-size: 18px;
+      color: #fff;
+      font-size: 16px;
     }
 
-    .ai-control input {
+    .difficulty-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .menu-button {
+      min-height: 42px;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font: 700 14px Arial, "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+    }
+
+    .menu-button.active,
+    .menu-button.primary {
+      border-color: #ffd84d;
+      background: #ffd84d;
+      color: #1c252a;
+    }
+
+    .menu-slider {
       width: 100%;
       accent-color: #ffd84d;
     }
 
-    .ai-control div {
+    .setting-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 4px;
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 12px;
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 14px;
+    }
+
+    .start-action {
+      width: 100%;
+      margin-top: 18px;
+      min-height: 50px;
+      font-size: 18px;
+    }
+
+    .menu-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
     }
 
     .game-over {
@@ -118,7 +224,9 @@
       color: #fff;
       text-align: center;
       transform: translate(-50%, -50%);
-      pointer-events: none;
+      pointer-events: auto;
+      z-index: 6;
+      font-size: 0;
     }
 
     .game-over.visible {
@@ -130,6 +238,21 @@
       margin-bottom: 8px;
       color: #ff554a;
       font-size: 34px;
+    }
+
+    .game-over > strong:not(:first-child) {
+      display: none;
+    }
+
+    .game-over div {
+      font-size: 16px;
+    }
+
+    .game-over-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
     }
   </style>
 </head>
@@ -146,13 +269,59 @@
     <strong>排名</strong>
   </div>
 
-  <div class="ai-control">
-    <strong>AI Strength</strong>
-    <input id="aiStrength" type="range" min="1" max="1.8" step="0.05" value="1.35" />
-    <div><span>Easy</span><span id="aiStrengthValue">135%</span><span>Hard</span></div>
+  <div class="speedometer hidden" id="speedometer">
+    <div class="speed-readout">
+      <span class="speed-value" id="speedValue">0</span>
+      <span class="speed-unit">KM/H</span>
+    </div>
+  </div>
+
+  <div class="start-screen" id="startScreen">
+    <div class="menu-panel">
+      <div class="menu-view" id="mainMenu">
+      <h1>Brake Drift Race</h1>
+      <p>Hold Space to hook the corner anchor, release to sling out of the turn.</p>
+
+      <div class="menu-section">
+        <strong>难度选择</strong>
+        <div class="difficulty-buttons">
+          <button class="menu-button" type="button" data-difficulty="easy">Easy</button>
+          <button class="menu-button active" type="button" data-difficulty="normal">Normal</button>
+          <button class="menu-button" type="button" data-difficulty="hard">Hard</button>
+        </div>
+      </div>
+
+      <div class="menu-actions">
+        <button class="menu-button primary start-action" id="startButton" type="button">Start Game</button>
+        <button class="menu-button" id="settingsButton" type="button">Settings</button>
+      </div>
+      </div>
+
+      <div class="menu-view hidden" id="settingsMenu">
+      <h1>Settings</h1>
+      <div class="menu-section">
+        <strong>设置</strong>
+        <div class="setting-row">
+          <span>小车速度</span>
+          <span id="playerSpeedValue">100%</span>
+        </div>
+        <input class="menu-slider" id="playerSpeed" type="range" min="0.8" max="1.3" step="0.05" value="1" />
+      </div>
+
+      <div class="menu-actions">
+        <button class="menu-button primary" id="backToMainButton" type="button">Back</button>
+      </div>
+      </div>
+    </div>
   </div>
 
   <div class="game-over" id="gameOver">
+    <strong>Crashed</strong>
+    <div>You hit the track edge.</div>
+    <div class="game-over-actions">
+      <button class="menu-button primary" id="restartButton" type="button">Restart</button>
+      <button class="menu-button" id="homeButton" type="button">Home</button>
+    </div>
     <strong>撞到赛道边缘</strong>
     按 R 重置
   </div>
@@ -162,8 +331,18 @@
     const ctx = canvas.getContext("2d");
     const gameOverEl = document.getElementById("gameOver");
     const leaderboardEl = document.getElementById("leaderboard");
-    const aiStrengthEl = document.getElementById("aiStrength");
-    const aiStrengthValueEl = document.getElementById("aiStrengthValue");
+    const speedometerEl = document.getElementById("speedometer");
+    const speedValueEl = document.getElementById("speedValue");
+    const startScreenEl = document.getElementById("startScreen");
+    const mainMenuEl = document.getElementById("mainMenu");
+    const settingsMenuEl = document.getElementById("settingsMenu");
+    const startButtonEl = document.getElementById("startButton");
+    const settingsButtonEl = document.getElementById("settingsButton");
+    const backToMainButtonEl = document.getElementById("backToMainButton");
+    const restartButtonEl = document.getElementById("restartButton");
+    const homeButtonEl = document.getElementById("homeButton");
+    const playerSpeedEl = document.getElementById("playerSpeed");
+    const playerSpeedValueEl = document.getElementById("playerSpeedValue");
 
     const input = {
       space: false
@@ -193,7 +372,17 @@
     let anchors = [];
     let boostPads = [];
     let aiOpponents = [];
-    let aiStrength = Number(aiStrengthEl.value);
+    let aiStrength = 1.35;
+    let gameStarted = false;
+    let selectedDifficulty = "normal";
+    let playerSpeedScale = Number(playerSpeedEl.value);
+    let displayedSpeed = 0;
+
+    const difficultySettings = {
+      easy: { aiStrength: 0.88, label: "Easy" },
+      normal: { aiStrength: 1.08, label: "Normal" },
+      hard: { aiStrength: 1.32, label: "Hard" }
+    };
 
     const generator = {
       point: { x: 0, y: 420 },
@@ -233,14 +422,15 @@
     function reset() {
       resetGeneratedTrack();
       const grid = getStartGridSlot(0);
+      const startSpeed = getPlayerBaseSpeed() * 0.93;
       car.x = grid.x;
       car.y = grid.y;
-      car.vx = grid.tangent.x * 280;
-      car.vy = grid.tangent.y * 280;
+      car.vx = grid.tangent.x * startSpeed;
+      car.vy = grid.tangent.y * startSpeed;
       car.angle = grid.angle;
       car.visualAngle = grid.angle;
-      car.speed = 300;
-      car.maxFreeSpeed = 370;
+      car.speed = getPlayerBaseSpeed();
+      car.maxFreeSpeed = getPlayerMaxSpeed();
       car.attached = false;
       car.anchor = null;
       car.detachedFlash = 0;
@@ -272,6 +462,14 @@
       for (let i = 0; i < 8; i += 1) {
         generateNextTrackSection();
       }
+    }
+
+    function getPlayerBaseSpeed() {
+      return 300 * playerSpeedScale;
+    }
+
+    function getPlayerMaxSpeed() {
+      return 370 * playerSpeedScale;
     }
 
     function resetAiOpponents() {
@@ -442,7 +640,7 @@
     function attachToAnchor(anchor) {
       car.attached = true;
       car.anchor = anchor;
-      car.speed = Math.max(300, Math.hypot(car.vx, car.vy));
+      car.speed = Math.max(getPlayerBaseSpeed(), Math.hypot(car.vx, car.vy));
       car.visualAngle = car.angle;
     }
 
@@ -523,13 +721,13 @@
     function updateDifficulty(dt) {
       car.runTime += dt;
       car.difficulty = Math.min(2.35, 1 + car.runTime / 75);
-      car.maxFreeSpeed = 370 + (car.difficulty - 1) * 190;
+      car.maxFreeSpeed = (370 + (car.difficulty - 1) * 190) * playerSpeedScale;
     }
 
     function applyEngineAssist(dt) {
       const speed = Math.max(1, Math.hypot(car.vx, car.vy));
-      const targetSpeed = (car.boostTimer > 0 ? 455 : 300) * car.difficulty;
-      const accel = car.boostTimer > 0 ? 260 : 58;
+      const targetSpeed = (car.boostTimer > 0 ? 455 : 300) * car.difficulty * playerSpeedScale;
+      const accel = (car.boostTimer > 0 ? 260 : 58) * playerSpeedScale;
       if (speed >= targetSpeed) return;
 
       car.vx += (car.vx / speed) * accel * dt;
@@ -699,12 +897,54 @@
         .join("")}`;
     }
 
-    function updateAiStrengthDisplay() {
-      aiStrength = Number(aiStrengthEl.value);
-      aiStrengthValueEl.textContent = `${Math.round(aiStrength * 100)}%`;
+    function updatePlayerSpeedDisplay() {
+      playerSpeedScale = Number(playerSpeedEl.value);
+      playerSpeedValueEl.textContent = `${Math.round(playerSpeedScale * 100)}%`;
+    }
+
+    function updateSpeedometer() {
+      const visible = gameStarted && !gameOverEl.classList.contains("visible");
+      speedometerEl.classList.toggle("hidden", !visible);
+
+      const targetSpeed = Math.max(0, car.speed * 0.38);
+      displayedSpeed += (targetSpeed - displayedSpeed) * 0.08;
+      speedValueEl.textContent = String(Math.round(displayedSpeed));
+    }
+
+    function selectDifficulty(difficulty) {
+      selectedDifficulty = difficulty;
+      const setting = difficultySettings[selectedDifficulty];
+      aiStrength = setting.aiStrength;
+
+      document.querySelectorAll("[data-difficulty]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.difficulty === selectedDifficulty);
+      });
+    }
+
+    function showMainMenu() {
+      mainMenuEl.classList.remove("hidden");
+      settingsMenuEl.classList.add("hidden");
+      startScreenEl.classList.remove("hidden");
+    }
+
+    function showSettingsMenu() {
+      mainMenuEl.classList.add("hidden");
+      settingsMenuEl.classList.remove("hidden");
+      updatePlayerSpeedDisplay();
+    }
+
+    function startGame() {
+      updatePlayerSpeedDisplay();
+      selectDifficulty(selectedDifficulty);
+      reset();
+      gameStarted = true;
+      startScreenEl.classList.add("hidden");
+      input.space = false;
+      lastTime = performance.now();
     }
 
     function crash() {
+      gameStarted = false;
       car.crashed = true;
       car.attached = false;
       car.anchor = null;
@@ -713,6 +953,19 @@
       car.speed = 0;
       input.space = false;
       gameOverEl.classList.add("visible");
+    }
+
+    function restartRace() {
+      gameOverEl.classList.remove("visible");
+      startGame();
+    }
+
+    function returnHome() {
+      gameStarted = false;
+      input.space = false;
+      gameOverEl.classList.remove("visible");
+      reset();
+      showMainMenu();
     }
 
     function draw() {
@@ -1330,8 +1583,9 @@
     function loop(now) {
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
-      update(dt);
+      if (gameStarted) update(dt);
       draw();
+      updateSpeedometer();
       requestAnimationFrame(loop);
     }
 
@@ -1340,7 +1594,10 @@
         event.preventDefault();
         input.space = true;
       }
-      if (event.code === "KeyR") reset();
+      if (event.code === "KeyR") {
+        if (gameOverEl.classList.contains("visible")) restartRace();
+        else reset();
+      }
     });
 
     window.addEventListener("keyup", (event) => {
@@ -1349,14 +1606,23 @@
       }
     });
 
-    aiStrengthEl.addEventListener("input", updateAiStrengthDisplay);
+    playerSpeedEl.addEventListener("input", updatePlayerSpeedDisplay);
+    startButtonEl.addEventListener("click", startGame);
+    settingsButtonEl.addEventListener("click", showSettingsMenu);
+    backToMainButtonEl.addEventListener("click", showMainMenu);
+    restartButtonEl.addEventListener("click", restartRace);
+    homeButtonEl.addEventListener("click", returnHome);
+    document.querySelectorAll("[data-difficulty]").forEach((button) => {
+      button.addEventListener("click", () => selectDifficulty(button.dataset.difficulty));
+    });
+
     window.addEventListener("pageshow", () => {
-      aiStrengthEl.value = "1.35";
-      updateAiStrengthDisplay();
+      selectDifficulty(selectedDifficulty);
+      updatePlayerSpeedDisplay();
     });
 
     function isUiControl(target) {
-      return target instanceof Element && target.closest(".ai-control");
+      return target instanceof Element && (target.closest(".start-screen") || target.closest(".game-over"));
     }
 
     window.addEventListener("pointerdown", (event) => {
@@ -1373,8 +1639,8 @@
       input.space = false;
     });
 
-    aiStrengthEl.value = "1.35";
-    updateAiStrengthDisplay();
+    selectDifficulty("normal");
+    updatePlayerSpeedDisplay();
     reset();
     requestAnimationFrame(loop);
   </script>
