@@ -47,6 +47,65 @@
       font-size: 20px;
     }
 
+    .leaderboard {
+      position: fixed;
+      left: 24px;
+      top: 168px;
+      width: 190px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.78);
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.45;
+      pointer-events: none;
+    }
+
+    .leaderboard strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #ffd84d;
+      font-size: 18px;
+    }
+
+    .leaderboard .player {
+      color: #ffd84d;
+      font-weight: 700;
+    }
+
+    .ai-control {
+      position: fixed;
+      left: 24px;
+      top: 340px;
+      width: 190px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.78);
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .ai-control strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #ffd84d;
+      font-size: 18px;
+    }
+
+    .ai-control input {
+      width: 100%;
+      accent-color: #ffd84d;
+    }
+
+    .ai-control div {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 12px;
+    }
+
     .game-over {
       position: fixed;
       left: 50%;
@@ -83,6 +142,16 @@
     R：重置
   </div>
 
+  <div class="leaderboard" id="leaderboard">
+    <strong>排名</strong>
+  </div>
+
+  <div class="ai-control">
+    <strong>AI Strength</strong>
+    <input id="aiStrength" type="range" min="1" max="1.8" step="0.05" value="1.35" />
+    <div><span>Easy</span><span id="aiStrengthValue">135%</span><span>Hard</span></div>
+  </div>
+
   <div class="game-over" id="gameOver">
     <strong>撞到赛道边缘</strong>
     按 R 重置
@@ -92,6 +161,9 @@
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const gameOverEl = document.getElementById("gameOver");
+    const leaderboardEl = document.getElementById("leaderboard");
+    const aiStrengthEl = document.getElementById("aiStrength");
+    const aiStrengthValueEl = document.getElementById("aiStrengthValue");
 
     const input = {
       space: false
@@ -102,8 +174,12 @@
       y: 0
     };
 
+    const view = {
+      zoom: 1.2
+    };
+
     const road = {
-      width: 220
+      width: 260
     };
 
     const rope = {
@@ -116,6 +192,8 @@
     let trackSegments = [];
     let anchors = [];
     let boostPads = [];
+    let aiOpponents = [];
+    let aiStrength = Number(aiStrengthEl.value);
 
     const generator = {
       point: { x: 0, y: 420 },
@@ -148,16 +226,19 @@
 
     const skidMarks = [];
     let cachedWorldTrackPoints = null;
+    let cachedTrackMetrics = null;
     let lastTime = performance.now();
     let activeAnchorIndex = 0;
 
     function reset() {
-      car.x = 0;
-      car.y = 260;
-      car.vx = 0;
-      car.vy = -280;
-      car.angle = -Math.PI / 2;
-      car.visualAngle = -Math.PI / 2;
+      resetGeneratedTrack();
+      const grid = getStartGridSlot(0);
+      car.x = grid.x;
+      car.y = grid.y;
+      car.vx = grid.tangent.x * 280;
+      car.vy = grid.tangent.y * 280;
+      car.angle = grid.angle;
+      car.visualAngle = grid.angle;
       car.speed = 300;
       car.maxFreeSpeed = 370;
       car.attached = false;
@@ -170,10 +251,11 @@
       car.crashed = false;
       skidMarks.length = 0;
       activeAnchorIndex = 0;
-      resetGeneratedTrack();
+      resetAiOpponents();
       gameOverEl.classList.remove("visible");
-      camera.x = 0;
-      camera.y = 0;
+      camera.x = car.x;
+      camera.y = car.y;
+      updateLeaderboardPanel();
     }
 
     function resetGeneratedTrack() {
@@ -181,6 +263,7 @@
       anchors = [];
       boostPads = [];
       cachedWorldTrackPoints = null;
+      cachedTrackMetrics = null;
       generator.point = { x: 0, y: 420 };
       generator.heading = -Math.PI / 2;
       generator.section = 0;
@@ -189,6 +272,46 @@
       for (let i = 0; i < 8; i += 1) {
         generateNextTrackSection();
       }
+    }
+
+    function resetAiOpponents() {
+      const names = ["Blaze", "Raven", "Viper", "Nova"];
+      const colors = ["#41b6e6", "#8bd450", "#b56cff", "#ff8b35"];
+      aiOpponents = colors.map((color, index) => ({
+        name: names[index],
+        color,
+        progress: getStartGridProgress(index + 1),
+        speed: 325 + index * 12,
+        targetSpeed: 338 + index * 15,
+        baseLaneOffset: getStartGridLaneOffset(index + 1),
+        lanePhase: Math.random() * Math.PI * 2,
+        x: getStartGridSlot(index + 1).x,
+        y: getStartGridSlot(index + 1).y,
+        angle: getStartGridSlot(index + 1).angle
+      }));
+    }
+
+    function getStartGridProgress(slotIndex) {
+      return 188 - slotIndex * 44;
+    }
+
+    function getStartGridLaneOffset(slotIndex) {
+      return slotIndex % 2 === 0 ? -42 : 42;
+    }
+
+    function getStartGridSlot(slotIndex) {
+      const progress = getStartGridProgress(slotIndex);
+      const laneOffset = getStartGridLaneOffset(slotIndex);
+      const point = getTrackPointAtProgress(progress);
+      return {
+        progress,
+        laneOffset,
+        x: point.x + point.normal.x * laneOffset,
+        y: point.y + point.normal.y * laneOffset,
+        angle: Math.atan2(point.tangent.y, point.tangent.x),
+        tangent: point.tangent,
+        normal: point.normal
+      };
     }
 
     function generateNextTrackSection() {
@@ -225,6 +348,7 @@
       generator.heading += turnDir * turnAbs;
       generator.section += 1;
       cachedWorldTrackPoints = null;
+      cachedTrackMetrics = null;
     }
 
     function chooseTurnAngle(heading, section) {
@@ -287,16 +411,20 @@
 
     function worldToScreen(x, y) {
       return {
-        x: x - camera.x + window.innerWidth / 2,
-        y: y - camera.y + window.innerHeight * 0.68
+        x: (x - camera.x) * view.zoom + window.innerWidth / 2,
+        y: (y - camera.y) * view.zoom + window.innerHeight * 0.68
       };
     }
 
     function screenToWorld(x, y) {
       return {
-        x: x + camera.x - window.innerWidth / 2,
-        y: y + camera.y - window.innerHeight * 0.68
+        x: (x - window.innerWidth / 2) / view.zoom + camera.x,
+        y: (y - window.innerHeight * 0.68) / view.zoom + camera.y
       };
+    }
+
+    function scaled(value) {
+      return value * view.zoom;
     }
 
     function getNearestAnchor() {
@@ -380,6 +508,7 @@
       car.slideTimer = Math.max(0, car.slideTimer - dt);
       car.boostTimer = Math.max(0, car.boostTimer - dt);
       updateSkidMarks(dt);
+      updateAiOpponents(dt);
       advanceActiveAnchor();
 
       if (isOutsideRoad()) {
@@ -388,6 +517,7 @@
 
       camera.x += (car.x - camera.x) * Math.min(1, dt * 5);
       camera.y += (car.y - camera.y) * Math.min(1, dt * 5);
+      updateLeaderboardPanel();
     }
 
     function updateDifficulty(dt) {
@@ -509,6 +639,71 @@
       }
     }
 
+    function updateAiOpponents(dt) {
+      const playerProgress = getTrackProgressAt(car.x, car.y);
+
+      for (const opponent of aiOpponents) {
+        while (opponent.progress > buildTrackMetrics().total - 1200) {
+          generateNextTrackSection();
+        }
+
+        const difficultyBonus = (car.difficulty - 1) * 170;
+        const rubberBand = opponent.progress < playerProgress - 520 ? 120 : opponent.progress > playerProgress + 640 ? -18 : 0;
+        const cornerBoost = Math.abs(Math.sin(opponent.progress * 0.004)) * 18;
+        const targetSpeed = (opponent.targetSpeed + difficultyBonus + rubberBand + cornerBoost) * aiStrength + Math.sin(car.runTime * 0.8 + opponent.lanePhase) * 14;
+        opponent.speed += (targetSpeed - opponent.speed) * Math.min(1, dt * 2.5);
+        opponent.progress += opponent.speed * dt;
+
+        const trackPoint = getTrackPointAtProgress(opponent.progress);
+        const laneWander = Math.sin(opponent.progress * 0.008 + opponent.lanePhase) * 8;
+        const offset = opponent.baseLaneOffset + laneWander;
+        opponent.x = trackPoint.x + trackPoint.normal.x * offset;
+        opponent.y = trackPoint.y + trackPoint.normal.y * offset;
+        opponent.angle = Math.atan2(trackPoint.tangent.y, trackPoint.tangent.x);
+      }
+    }
+
+    function updateLeaderboard() {
+      const entries = [
+        { name: "你", progress: getTrackProgressAt(car.x, car.y), player: true },
+        ...aiOpponents.map((opponent) => ({
+          name: opponent.name,
+          progress: opponent.progress,
+          player: false
+        }))
+      ].sort((a, b) => b.progress - a.progress);
+
+      leaderboardEl.innerHTML = `<strong>排名</strong>${entries
+        .map((entry, index) => {
+          const className = entry.player ? " class=\"player\"" : "";
+          return `<div${className}>${index + 1}. ${entry.name}</div>`;
+        })
+        .join("")}`;
+    }
+
+    function updateLeaderboardPanel() {
+      const entries = [
+        { name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        ...aiOpponents.map((opponent) => ({
+          name: opponent.name,
+          progress: opponent.progress,
+          player: false
+        }))
+      ].sort((a, b) => b.progress - a.progress);
+
+      leaderboardEl.innerHTML = `<strong>Rank</strong>${entries
+        .map((entry, index) => {
+          const className = entry.player ? " class=\"player\"" : "";
+          return `<div${className}>${index + 1}. ${entry.name}</div>`;
+        })
+        .join("")}`;
+    }
+
+    function updateAiStrengthDisplay() {
+      aiStrength = Number(aiStrengthEl.value);
+      aiStrengthValueEl.textContent = `${Math.round(aiStrength * 100)}%`;
+    }
+
     function crash() {
       car.crashed = true;
       car.attached = false;
@@ -528,10 +723,12 @@
       ctx.clearRect(0, 0, width, height);
       drawGrass(width, height);
       drawTrack();
+      drawStartGrid();
       drawBoostPads();
       drawSkidMarks();
       drawAnchors();
       drawRope();
+      drawAiOpponents();
       drawCar();
     }
 
@@ -560,19 +757,38 @@
       ctx.lineJoin = "round";
 
       ctx.strokeStyle = "#263036";
-      ctx.lineWidth = road.width;
+      ctx.lineWidth = scaled(road.width);
       drawPolyline(points);
 
       ctx.strokeStyle = "#3a444a";
-      ctx.lineWidth = road.width - 24;
+      ctx.lineWidth = scaled(road.width - 24);
       drawPolyline(points);
 
       drawCurbs();
 
       ctx.strokeStyle = "rgba(255,255,255,0.82)";
-      ctx.lineWidth = 4;
-      drawOffsetPolyline(points, -road.width / 2 + 10);
-      drawOffsetPolyline(points, road.width / 2 - 10);
+      ctx.lineWidth = scaled(4);
+      drawOffsetPolyline(points, scaled(-road.width / 2 + 10));
+      drawOffsetPolyline(points, scaled(road.width / 2 - 10));
+    }
+
+    function drawStartGrid() {
+      for (let i = 0; i < 5; i += 1) {
+        const slot = getStartGridSlot(i);
+        const p = worldToScreen(slot.x, slot.y);
+        if (p.x < -120 || p.x > window.innerWidth + 120 || p.y < -120 || p.y > window.innerHeight + 120) continue;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(slot.angle + Math.PI / 2);
+        ctx.fillStyle = i === 0 ? "rgba(255, 216, 77, 0.16)" : "rgba(255, 255, 255, 0.12)";
+        ctx.strokeStyle = i === 0 ? "rgba(255, 216, 77, 0.82)" : "rgba(255, 255, 255, 0.58)";
+        ctx.lineWidth = scaled(3);
+        roundRect(scaled(-24), scaled(-34), scaled(48), scaled(68), scaled(6));
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
     }
 
     function buildTrackPoints() {
@@ -622,6 +838,59 @@
       return points;
     }
 
+    function buildTrackMetrics() {
+      if (cachedTrackMetrics) return cachedTrackMetrics;
+
+      const points = buildWorldTrackPoints();
+      const cumulative = [0];
+      for (let i = 0; i < points.length - 1; i += 1) {
+        cumulative.push(cumulative[i] + Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y));
+      }
+
+      cachedTrackMetrics = {
+        points,
+        cumulative,
+        total: cumulative[cumulative.length - 1] || 0
+      };
+      return cachedTrackMetrics;
+    }
+
+    function getTrackPointAtProgress(progress) {
+      let metrics = buildTrackMetrics();
+      while (progress > metrics.total - 1200) {
+        generateNextTrackSection();
+        metrics = buildTrackMetrics();
+      }
+
+      const points = metrics.points;
+      const cumulative = metrics.cumulative;
+      const target = Math.max(0, Math.min(progress, metrics.total));
+      let low = 0;
+      let high = cumulative.length - 1;
+
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2);
+        if (cumulative[mid] < target) low = mid + 1;
+        else high = mid;
+      }
+
+      const index = Math.max(0, low - 1);
+      const a = points[index];
+      const b = points[Math.min(points.length - 1, index + 1)];
+      const segmentLength = Math.max(1, cumulative[index + 1] - cumulative[index]);
+      const t = Math.max(0, Math.min(1, (target - cumulative[index]) / segmentLength));
+      const x = a.x + (b.x - a.x) * t;
+      const y = a.y + (b.y - a.y) * t;
+      const angle = Math.atan2(b.y - a.y, b.x - a.x);
+
+      return {
+        x,
+        y,
+        tangent: { x: Math.cos(angle), y: Math.sin(angle) },
+        normal: { x: Math.cos(angle + Math.PI / 2), y: Math.sin(angle + Math.PI / 2) }
+      };
+    }
+
     function addLinePoints(points, from, to, steps) {
       for (let i = points.length ? 1 : 0; i <= steps; i += 1) {
         const t = i / steps;
@@ -663,6 +932,23 @@
       }
 
       return best;
+    }
+
+    function getTrackProgressAt(x, y) {
+      const metrics = buildTrackMetrics();
+      const points = metrics.points;
+      let bestDistance = Infinity;
+      let bestProgress = 0;
+
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const info = projectPointToSegment(x, y, points[i], points[i + 1]);
+        if (info.distance < bestDistance) {
+          bestDistance = info.distance;
+          bestProgress = metrics.cumulative[i] + info.t * Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+        }
+      }
+
+      return bestProgress;
     }
 
     function distanceToSegment(x, y, a, b) {
@@ -719,7 +1005,7 @@
       ctx.save();
       ctx.lineCap = "butt";
       ctx.lineJoin = "round";
-      ctx.lineWidth = curbWidth;
+      ctx.lineWidth = scaled(curbWidth);
 
       drawStripedCurb(buildOffsetTrackPoints(worldPoints, edgeOffset));
       drawStripedCurb(buildOffsetTrackPoints(worldPoints, -edgeOffset));
@@ -811,14 +1097,14 @@
       const distance = Math.hypot(anchor.x - car.x, anchor.y - car.y);
       const nearRatio = Math.max(0, Math.min(1, 1 - distance / rope.maxReach));
       const pulse = (Math.sin(performance.now() * 0.012) + 1) * 0.5;
-      const radius = active ? 15 : 11 + nearRatio * (5 + pulse * 5);
-      const ringRadius = radius + 9 + nearRatio * pulse * 10;
+      const radius = scaled(active ? 15 : 11 + nearRatio * (5 + pulse * 5));
+      const ringRadius = radius + scaled(9 + nearRatio * pulse * 10);
 
       ctx.save();
       if (nearRatio > 0) {
         ctx.globalAlpha = 0.18 + nearRatio * 0.34;
         ctx.strokeStyle = "#ffdd48";
-        ctx.lineWidth = 4 + nearRatio * 3;
+        ctx.lineWidth = scaled(4 + nearRatio * 3);
         ctx.beginPath();
         ctx.arc(p.x, p.y, ringRadius, 0, Math.PI * 2);
         ctx.stroke();
@@ -846,6 +1132,7 @@
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(pad.angle + Math.PI / 2);
+        ctx.scale(view.zoom, view.zoom);
         ctx.globalAlpha = pad.used ? 0.35 : 1;
         ctx.fillStyle = "rgba(28, 37, 42, 0.32)";
         roundRect(-46, -42, 92, 84, 8);
@@ -871,7 +1158,7 @@
       const a = worldToScreen(car.anchor.x, car.anchor.y);
       const c = worldToScreen(car.x, car.y);
       ctx.strokeStyle = "#ffd84d";
-      ctx.lineWidth = 5;
+      ctx.lineWidth = scaled(5);
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(c.x, c.y);
@@ -910,6 +1197,7 @@
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(mark.angle + Math.PI / 2);
+        ctx.scale(view.zoom, view.zoom);
         ctx.globalAlpha = Math.max(0, mark.life / 0.9) * 0.42;
         ctx.strokeStyle = "#151a1d";
         ctx.lineWidth = 4;
@@ -923,30 +1211,36 @@
       }
     }
 
+    function drawAiOpponents() {
+      for (const opponent of aiOpponents) {
+        const p = worldToScreen(opponent.x, opponent.y);
+        if (p.x < -80 || p.x > window.innerWidth + 80 || p.y < -80 || p.y > window.innerHeight + 80) continue;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(opponent.angle + Math.PI / 2);
+        ctx.scale(0.88 * view.zoom, 0.88 * view.zoom);
+
+        drawVehicleBody(opponent.color, "#20272b", "#f4f8fb");
+
+        ctx.fillStyle = "rgba(15,20,24,0.72)";
+        ctx.font = "700 13px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(opponent.name[0], 0, 4);
+        ctx.restore();
+      }
+    }
+
     function drawCar() {
       const p = worldToScreen(car.x, car.y);
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(car.visualAngle + Math.PI / 2);
+      ctx.scale(view.zoom, view.zoom);
 
       drawJetFlame();
-
-      ctx.fillStyle = "rgba(0,0,0,0.24)";
-      ctx.beginPath();
-      ctx.ellipse(0, 18, 22, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#f2c12f";
-      roundRect(-15, -28, 30, 56, 9);
-      ctx.fill();
-
-      ctx.fillStyle = "#20272b";
-      roundRect(-11, -18, 22, 16, 5);
-      ctx.fill();
-
-      ctx.fillStyle = "#e74b3f";
-      roundRect(-13, 8, 26, 16, 5);
-      ctx.fill();
+      drawVehicleBody("#f2c12f", "#20272b", "#e74b3f");
 
       if (car.detachedFlash > 0) {
         ctx.save();
@@ -962,6 +1256,25 @@
       }
 
       ctx.restore();
+    }
+
+    function drawVehicleBody(bodyColor, cockpitColor, tailColor) {
+      ctx.fillStyle = "rgba(0,0,0,0.24)";
+      ctx.beginPath();
+      ctx.ellipse(0, 18, 22, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = bodyColor;
+      roundRect(-15, -28, 30, 56, 9);
+      ctx.fill();
+
+      ctx.fillStyle = cockpitColor;
+      roundRect(-11, -18, 22, 16, 5);
+      ctx.fill();
+
+      ctx.fillStyle = tailColor;
+      roundRect(-13, 8, 26, 16, 5);
+      ctx.fill();
     }
 
     function drawJetFlame() {
@@ -1036,11 +1349,23 @@
       }
     });
 
-    window.addEventListener("pointerdown", () => {
+    aiStrengthEl.addEventListener("input", updateAiStrengthDisplay);
+    window.addEventListener("pageshow", () => {
+      aiStrengthEl.value = "1.35";
+      updateAiStrengthDisplay();
+    });
+
+    function isUiControl(target) {
+      return target instanceof Element && target.closest(".ai-control");
+    }
+
+    window.addEventListener("pointerdown", (event) => {
+      if (isUiControl(event.target)) return;
       input.space = true;
     });
 
-    window.addEventListener("pointerup", () => {
+    window.addEventListener("pointerup", (event) => {
+      if (isUiControl(event.target)) return;
       input.space = false;
     });
 
@@ -1048,6 +1373,8 @@
       input.space = false;
     });
 
+    aiStrengthEl.value = "1.35";
+    updateAiStrengthDisplay();
     reset();
     requestAnimationFrame(loop);
   </script>
