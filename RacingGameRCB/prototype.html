@@ -120,7 +120,8 @@
     const generator = {
       point: { x: 0, y: 420 },
       heading: -Math.PI / 2,
-      section: 0
+      section: 0,
+      nextHairpinSection: 3
     };
 
     const car = {
@@ -183,6 +184,7 @@
       generator.point = { x: 0, y: 420 };
       generator.heading = -Math.PI / 2;
       generator.section = 0;
+      generator.nextHairpinSection = 3 + Math.floor(Math.random() * 3);
 
       for (let i = 0; i < 8; i += 1) {
         generateNextTrackSection();
@@ -201,8 +203,8 @@
       addBoostPadsOnStraight(from, to, generator.heading, straightLength);
       generator.point = to;
 
-      const turnAbs = Math.PI / 2;
-      const turnDir = chooseTurnDirection(generator.heading, generator.section);
+      const turnAbs = chooseTurnAngle(generator.heading, generator.section);
+      const turnDir = chooseTurnDirection(generator.heading, generator.section, turnAbs);
       const radius = 160;
       const leftX = -Math.sin(generator.heading);
       const leftY = Math.cos(generator.heading);
@@ -217,7 +219,7 @@
         y: center.y + Math.sin(end) * radius
       };
 
-      trackSegments.push({ type: "arc", center, radius, start, end, dir: turnDir });
+      trackSegments.push({ type: "arc", center, radius, start, end, dir: turnDir, turnAbs });
       anchors.push({ x: center.x, y: center.y, r: radius });
       generator.point = exit;
       generator.heading += turnDir * turnAbs;
@@ -225,7 +227,18 @@
       cachedWorldTrackPoints = null;
     }
 
-    function chooseTurnDirection(heading, section) {
+    function chooseTurnAngle(heading, section) {
+      const normalized = normalizeAngle(heading);
+      const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
+      const canHairpin = horizontal && section > 1;
+      if (canHairpin && section >= generator.nextHairpinSection) {
+        generator.nextHairpinSection = section + 3 + Math.floor(Math.random() * 4);
+        return Math.PI;
+      }
+      return Math.PI / 2;
+    }
+
+    function chooseTurnDirection(heading, section, turnAbs) {
       const normalized = normalizeAngle(heading);
       const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
       if (horizontal) {
@@ -233,7 +246,7 @@
       }
 
       const candidate = section % 2 === 0 ? 1 : -1;
-      const nextHeading = heading + candidate * Math.PI / 2;
+      const nextHeading = heading + candidate * turnAbs;
       const driftX = generator.point.x + Math.cos(nextHeading) * 800;
       if (driftX > 760) return -1;
       if (driftX < -760) return 1;
@@ -600,7 +613,8 @@
         if (segment.type === "line") {
           addLinePoints(points, segment.from, segment.to, 28);
         } else {
-          addArcPoints(points, segment.center, segment.radius, segment.start, segment.end, segment.dir, 36);
+          const arcSteps = segment.turnAbs > Math.PI / 2 ? 72 : 36;
+          addArcPoints(points, segment.center, segment.radius, segment.start, segment.end, segment.dir, arcSteps);
         }
       }
 
