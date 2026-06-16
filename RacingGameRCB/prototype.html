@@ -287,6 +287,7 @@
     }
 
     function getNearestAnchor() {
+      syncActiveAnchorToCar();
       const anchor = anchors[activeAnchorIndex];
       if (!anchor) return null;
 
@@ -326,6 +327,7 @@
 
       ensureTrackAhead();
       updateDifficulty(dt);
+      syncActiveAnchorToCar();
 
       if (input.space && !car.attached) {
         const anchor = getNearestAnchor();
@@ -389,6 +391,24 @@
 
       car.vx += (car.vx / speed) * accel * dt;
       car.vy += (car.vy / speed) * accel * dt;
+    }
+
+    function syncActiveAnchorToCar() {
+      if (car.attached) return;
+
+      while (activeAnchorIndex < anchors.length - 1) {
+        const current = anchors[activeAnchorIndex];
+        const next = anchors[activeAnchorIndex + 1];
+        const currentDistance = Math.hypot(current.x - car.x, current.y - car.y);
+        const nextDistance = Math.hypot(next.x - car.x, next.y - car.y);
+        const nextIsCloser = nextDistance < currentDistance - 28;
+        const nextIsReady = nextDistance < rope.maxReach * 0.72;
+        const currentIsOutdated = currentDistance > rope.maxReach * 0.9 && nextDistance < rope.maxReach * 1.2;
+
+        if (!nextIsReady && !nextIsCloser && !currentIsOutdated) break;
+        activeAnchorIndex += 1;
+        ensureTrackAhead();
+      }
     }
 
     function advanceActiveAnchor() {
@@ -774,10 +794,32 @@
       if (p.y < -80 || p.y > window.innerHeight + 80) return;
 
       const active = car.anchor === anchor;
+      const distance = Math.hypot(anchor.x - car.x, anchor.y - car.y);
+      const nearRatio = Math.max(0, Math.min(1, 1 - distance / rope.maxReach));
+      const pulse = (Math.sin(performance.now() * 0.012) + 1) * 0.5;
+      const radius = active ? 15 : 11 + nearRatio * (5 + pulse * 5);
+      const ringRadius = radius + 9 + nearRatio * pulse * 10;
+
       ctx.save();
-      ctx.fillStyle = active ? "#ffdd48" : "#ffffff";
+      if (nearRatio > 0) {
+        ctx.globalAlpha = 0.18 + nearRatio * 0.34;
+        ctx.strokeStyle = "#ffdd48";
+        ctx.lineWidth = 4 + nearRatio * 3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = active || nearRatio > 0.25 ? "#ffdd48" : "#ffffff";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, active ? 15 : 11, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.globalAlpha = 0.65 + nearRatio * 0.25;
+      ctx.beginPath();
+      ctx.arc(p.x - radius * 0.28, p.y - radius * 0.28, Math.max(3, radius * 0.28), 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
