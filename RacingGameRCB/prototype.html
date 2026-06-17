@@ -73,15 +73,61 @@
       font-weight: 700;
     }
 
+    .rank-row {
+      display: grid;
+      grid-template-columns: 24px 1fr auto;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .rank-position {
+      color: rgba(255, 255, 255, 0.72);
+      font-weight: 800;
+    }
+
+    .rank-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rank-change {
+      min-width: 38px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .rank-up {
+      background: rgba(70, 210, 108, 0.28);
+      color: #8bd450;
+      transform: translateX(6px);
+      box-shadow: inset 4px 0 0 #8bd450;
+    }
+
+    .rank-down {
+      background: rgba(255, 85, 74, 0.28);
+      color: #ff786f;
+      transform: translateX(-6px);
+      box-shadow: inset 4px 0 0 #ff554a;
+    }
+
+    .rank-steady .rank-change {
+      color: rgba(255, 255, 255, 0.34);
+    }
+
     .speedometer {
       position: fixed;
       right: 24px;
       bottom: 22px;
-      min-width: 142px;
-      padding: 14px 16px;
-      border-radius: 8px;
-      background: rgba(15, 20, 24, 0.82);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      min-width: 128px;
+      padding: 10px 14px;
+      border-left: 4px solid #ffd84d;
+      background: rgba(15, 20, 24, 0.86);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
       color: #fff;
       pointer-events: none;
       z-index: 2;
@@ -92,20 +138,20 @@
     }
 
     .speed-readout {
-      text-align: center;
+      text-align: right;
     }
 
     .speed-value {
-      display: block;
+      display: inline-block;
       color: #ffd84d;
-      font-size: 42px;
+      font-size: 38px;
       font-weight: 800;
       line-height: 1;
     }
 
     .speed-unit {
-      display: block;
-      margin-top: 3px;
+      display: inline-block;
+      margin-left: 6px;
       color: rgba(255, 255, 255, 0.76);
       font-size: 12px;
       font-weight: 700;
@@ -377,6 +423,8 @@
     let selectedDifficulty = "normal";
     let playerSpeedScale = Number(playerSpeedEl.value);
     let displayedSpeed = 0;
+    let lastRankPositions = new Map();
+    let rankChangeEffects = new Map();
 
     const difficultySettings = {
       easy: { aiStrength: 0.88, label: "Easy" },
@@ -441,6 +489,8 @@
       car.crashed = false;
       skidMarks.length = 0;
       activeAnchorIndex = 0;
+      lastRankPositions = new Map();
+      rankChangeEffects = new Map();
       resetAiOpponents();
       gameOverEl.classList.remove("visible");
       camera.x = car.x;
@@ -881,20 +931,49 @@
 
     function updateLeaderboardPanel() {
       const entries = [
-        { name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        { id: "YOU", name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
         ...aiOpponents.map((opponent) => ({
+          id: opponent.name,
           name: opponent.name,
           progress: opponent.progress,
           player: false
         }))
       ].sort((a, b) => b.progress - a.progress);
+      const now = performance.now();
+
+      entries.forEach((entry, index) => {
+        const position = index + 1;
+        const previous = lastRankPositions.get(entry.id);
+        const delta = previous ? previous - position : 0;
+        if (delta !== 0) {
+          rankChangeEffects.set(entry.id, {
+            delta,
+            until: now + 1400
+          });
+        }
+      });
 
       leaderboardEl.innerHTML = `<strong>Rank</strong>${entries
         .map((entry, index) => {
-          const className = entry.player ? " class=\"player\"" : "";
-          return `<div${className}>${index + 1}. ${entry.name}</div>`;
+          const position = index + 1;
+          const effect = rankChangeEffects.get(entry.id);
+          const delta = effect && effect.until > now ? effect.delta : 0;
+          const movementClass = delta > 0 ? "rank-up" : delta < 0 ? "rank-down" : "rank-steady";
+          const playerClass = entry.player ? " player" : "";
+          const changeText = delta > 0 ? `▲ +${delta}` : delta < 0 ? `▼ ${delta}` : "–";
+
+          return `<div class="rank-row ${movementClass}${playerClass}">
+            <span class="rank-position">${position}</span>
+            <span class="rank-name">${entry.name}</span>
+            <span class="rank-change">${changeText}</span>
+          </div>`;
         })
         .join("")}`;
+
+      lastRankPositions = new Map(entries.map((entry, index) => [entry.id, index + 1]));
+      rankChangeEffects.forEach((effect, id) => {
+        if (effect.until <= now) rankChangeEffects.delete(id);
+      });
     }
 
     function updatePlayerSpeedDisplay() {
