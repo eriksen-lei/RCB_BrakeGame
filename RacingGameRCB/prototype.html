@@ -51,7 +51,7 @@
       position: fixed;
       left: 24px;
       top: 168px;
-      width: 190px;
+      width: 238px;
       padding: 12px 14px;
       border-radius: 8px;
       background: rgba(15, 20, 24, 0.78);
@@ -75,7 +75,7 @@
 
     .rank-row {
       display: grid;
-      grid-template-columns: 24px 1fr auto;
+      grid-template-columns: 24px 1fr 42px 64px;
       align-items: center;
       min-height: 24px;
       padding: 2px 4px;
@@ -95,10 +95,22 @@
     }
 
     .rank-change {
-      min-width: 38px;
       text-align: right;
       font-size: 12px;
       font-weight: 900;
+    }
+
+    .rank-gap {
+      text-align: right;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .rank-gap.leader {
+      color: #ffd84d;
+      font-size: 10px;
     }
 
     .rank-up {
@@ -123,12 +135,17 @@
       position: fixed;
       right: 24px;
       bottom: 22px;
-      min-width: 128px;
-      padding: 10px 14px;
-      border-left: 4px solid #ffd84d;
+      width: 150px;
+      height: 150px;
+      display: grid;
+      place-items: center;
+      border: 4px solid rgba(255, 216, 77, 0.9);
+      border-radius: 50%;
       background: rgba(15, 20, 24, 0.86);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+      background-image: none !important;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
       color: #fff;
+      overflow: hidden;
       pointer-events: none;
       z-index: 2;
     }
@@ -137,21 +154,40 @@
       display: none;
     }
 
+    .speedometer::before,
+    .speedometer::after,
+    .speedometer *::before,
+    .speedometer *::after,
+    .speed-center,
+    .speed-dot,
+    .dial-center {
+      display: none !important;
+      content: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      opacity: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
     .speed-readout {
-      text-align: right;
+      position: relative;
+      text-align: center;
+      transform: translateY(-3px);
+      z-index: 1;
     }
 
     .speed-value {
-      display: inline-block;
+      display: block;
       color: #ffd84d;
-      font-size: 38px;
+      font-size: 40px;
       font-weight: 800;
       line-height: 1;
     }
 
     .speed-unit {
-      display: inline-block;
-      margin-left: 6px;
+      display: block;
+      margin-top: 4px;
       color: rgba(255, 255, 255, 0.76);
       font-size: 12px;
       font-weight: 700;
@@ -252,6 +288,12 @@
       font-size: 18px;
     }
 
+    #startButton,
+    #raceButton {
+      min-height: 50px;
+      font-size: 18px;
+    }
+
     .menu-actions {
       display: grid;
       gap: 10px;
@@ -300,10 +342,135 @@
       gap: 10px;
       margin-top: 18px;
     }
+
+    .respawn-banner {
+      position: fixed;
+      left: 50%;
+      top: 86px;
+      min-width: 220px;
+      padding: 12px 18px;
+      border: 3px solid rgba(255, 216, 77, 0.86);
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.86);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .respawn-banner.hidden {
+      display: none;
+    }
+
+    .respawn-time {
+      color: #ffd84d;
+      font-size: 22px;
+    }
+
+    .race-timer {
+      position: fixed;
+      left: 50%;
+      top: 22px;
+      min-width: 150px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.8);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .race-timer.hidden {
+      display: none;
+    }
+
+    .race-timer span {
+      color: #ffd84d;
+      font-size: 24px;
+    }
+
+    .race-notice {
+      position: fixed;
+      left: 50%;
+      top: 82px;
+      min-width: 300px;
+      padding: 16px 26px;
+      border: 4px solid #fff;
+      border-radius: 8px;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 32px;
+      font-weight: 900;
+      text-align: center;
+      transform: translateX(-50%);
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.32), 0 0 0 6px rgba(255, 216, 77, 0.55);
+      pointer-events: none;
+      z-index: 4;
+      animation: raceNoticePulse 0.48s ease-in-out infinite alternate;
+    }
+
+    .race-notice.hidden {
+      display: none;
+    }
+
+    @keyframes raceNoticePulse {
+      from {
+        transform: translateX(-50%) scale(1);
+      }
+
+      to {
+        transform: translateX(-50%) scale(1.08);
+      }
+    }
+
+    .track-preview {
+      position: fixed;
+      right: 24px;
+      top: 22px;
+      width: 176px;
+      height: 176px;
+      border: 5px solid rgba(255, 216, 77, 0.94);
+      border-radius: 50%;
+      background: rgba(15, 20, 24, 0.82);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .track-preview.hidden {
+      display: none;
+    }
+
+    .result-list {
+      margin-top: 14px;
+      text-align: left;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 42px 1fr 64px;
+      gap: 10px;
+      padding: 5px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .result-row.player {
+      color: #ffd84d;
+    }
   </style>
 </head>
 <body>
   <canvas id="game"></canvas>
+  <canvas class="track-preview hidden" id="trackPreview"></canvas>
   <div class="hint">
     <strong>Sling Drift 核心机制</strong>
     按住 Space：连接最近锚点绕弯<br />
@@ -322,6 +489,16 @@
     </div>
   </div>
 
+  <div class="respawn-banner hidden" id="respawnBanner">
+    Respawning <span class="respawn-time" id="respawnTime">0.5</span>s
+  </div>
+
+  <div class="race-timer hidden" id="raceTimer">
+    Remaining <span id="raceTime">--</span>m
+  </div>
+
+  <div class="race-notice hidden" id="raceNotice">1000m remaining</div>
+
   <div class="start-screen" id="startScreen">
     <div class="menu-panel">
       <div class="menu-view" id="mainMenu">
@@ -338,7 +515,8 @@
       </div>
 
       <div class="menu-actions">
-        <button class="menu-button primary start-action" id="startButton" type="button">Start Game</button>
+        <button class="menu-button primary start-action" id="startButton" type="button">Practice Mode</button>
+        <button class="menu-button primary" id="raceButton" type="button">Race Mode</button>
         <button class="menu-button" id="settingsButton" type="button">Settings</button>
       </div>
       </div>
@@ -362,8 +540,8 @@
   </div>
 
   <div class="game-over" id="gameOver">
-    <strong>Crashed</strong>
-    <div>You hit the track edge.</div>
+    <strong id="resultTitle">Crashed</strong>
+    <div id="resultBody">You hit the track edge.</div>
     <div class="game-over-actions">
       <button class="menu-button primary" id="restartButton" type="button">Restart</button>
       <button class="menu-button" id="homeButton" type="button">Home</button>
@@ -375,18 +553,28 @@
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
+    const trackPreviewEl = document.getElementById("trackPreview");
+    const previewCtx = trackPreviewEl.getContext("2d");
     const gameOverEl = document.getElementById("gameOver");
     const leaderboardEl = document.getElementById("leaderboard");
     const speedometerEl = document.getElementById("speedometer");
     const speedValueEl = document.getElementById("speedValue");
+    const respawnBannerEl = document.getElementById("respawnBanner");
+    const respawnTimeEl = document.getElementById("respawnTime");
+    const raceTimerEl = document.getElementById("raceTimer");
+    const raceTimeEl = document.getElementById("raceTime");
+    const raceNoticeEl = document.getElementById("raceNotice");
     const startScreenEl = document.getElementById("startScreen");
     const mainMenuEl = document.getElementById("mainMenu");
     const settingsMenuEl = document.getElementById("settingsMenu");
     const startButtonEl = document.getElementById("startButton");
+    const raceButtonEl = document.getElementById("raceButton");
     const settingsButtonEl = document.getElementById("settingsButton");
     const backToMainButtonEl = document.getElementById("backToMainButton");
     const restartButtonEl = document.getElementById("restartButton");
     const homeButtonEl = document.getElementById("homeButton");
+    const resultTitleEl = document.getElementById("resultTitle");
+    const resultBodyEl = document.getElementById("resultBody");
     const playerSpeedEl = document.getElementById("playerSpeed");
     const playerSpeedValueEl = document.getElementById("playerSpeedValue");
 
@@ -418,18 +606,30 @@
     let anchors = [];
     let boostPads = [];
     let aiOpponents = [];
-    let aiStrength = 1.35;
+    let aiStrength = 0.88;
     let gameStarted = false;
     let selectedDifficulty = "normal";
     let playerSpeedScale = Number(playerSpeedEl.value);
     let displayedSpeed = 0;
     let lastRankPositions = new Map();
     let rankChangeEffects = new Map();
+    let currentMode = "endless";
+
+    const race = {
+      duration: 60,
+      finishLeadTime: 5,
+      finishAheadDistance: 1500,
+      elapsed: 0,
+      finishProgress: null,
+      finished: false,
+      noticeTimer: 0,
+      shownMilestones: new Set()
+    };
 
     const difficultySettings = {
-      easy: { aiStrength: 0.88, label: "Easy" },
-      normal: { aiStrength: 1.08, label: "Normal" },
-      hard: { aiStrength: 1.32, label: "Hard" }
+      easy: { aiStrength: 0.70, label: "Easy" },
+      normal: { aiStrength: 0.88, label: "Normal" },
+      hard: { aiStrength: 1.08, label: "Hard" }
     };
 
     const generator = {
@@ -458,7 +658,9 @@
       boostTimer: 0,
       runTime: 0,
       difficulty: 1,
-      crashed: false
+      crashed: false,
+      respawnTimer: 0,
+      respawnTarget: null
     };
 
     const skidMarks = [];
@@ -470,7 +672,7 @@
     function reset() {
       resetGeneratedTrack();
       const grid = getStartGridSlot(0);
-      const startSpeed = getPlayerBaseSpeed() * 0.93;
+      const startSpeed = getPlayerBaseSpeed() * 1.116;
       car.x = grid.x;
       car.y = grid.y;
       car.vx = grid.tangent.x * startSpeed;
@@ -487,15 +689,25 @@
       car.runTime = 0;
       car.difficulty = 1;
       car.crashed = false;
+      car.respawnTimer = 0;
+      car.respawnTarget = null;
       skidMarks.length = 0;
       activeAnchorIndex = 0;
       lastRankPositions = new Map();
       rankChangeEffects = new Map();
+      race.elapsed = 0;
+      race.finishProgress = null;
+      race.finished = false;
+      race.noticeTimer = 0;
+      race.shownMilestones = new Set();
       resetAiOpponents();
       gameOverEl.classList.remove("visible");
+      updateRespawnBanner();
+      updateRaceTimer();
+      updateRaceNotice(0);
       camera.x = car.x;
       camera.y = car.y;
-      updateLeaderboardPanel();
+      updateLeaderboardPanelF1();
     }
 
     function resetGeneratedTrack() {
@@ -646,6 +858,14 @@
       }
     }
 
+    function ensureTrackToProgress(progress) {
+      let metrics = buildTrackMetrics();
+      while (metrics.total < progress) {
+        generateNextTrackSection();
+        metrics = buildTrackMetrics();
+      }
+    }
+
     function resize() {
       const dpr = window.devicePixelRatio || 1;
       const width = Math.floor(window.innerWidth * dpr);
@@ -712,7 +932,18 @@
     }
 
     function update(dt) {
-      if (car.crashed) return;
+      if (car.crashed) {
+        ensureTrackAhead();
+        updateDifficulty(dt);
+        updateRespawnPenalty(dt);
+        updateSkidMarks(dt);
+        updateAiOpponents(dt);
+        updateRaceState(dt);
+        camera.x += (car.x - camera.x) * Math.min(1, dt * 5);
+        camera.y += (car.y - camera.y) * Math.min(1, dt * 5);
+        updateLeaderboardPanelF1();
+        return;
+      }
 
       ensureTrackAhead();
       updateDifficulty(dt);
@@ -757,15 +988,139 @@
       car.boostTimer = Math.max(0, car.boostTimer - dt);
       updateSkidMarks(dt);
       updateAiOpponents(dt);
+      updateRaceState(dt);
+      if (race.finished) return;
       advanceActiveAnchor();
 
       if (isOutsideRoad()) {
-        crash();
+        startRespawnPenalty();
       }
 
       camera.x += (car.x - camera.x) * Math.min(1, dt * 5);
       camera.y += (car.y - camera.y) * Math.min(1, dt * 5);
-      updateLeaderboardPanel();
+      updateLeaderboardPanelF1();
+    }
+
+    function updateRespawnPenalty(dt) {
+      car.respawnTimer = Math.max(0, car.respawnTimer - dt);
+      updateRespawnBanner();
+
+      if (car.respawnTimer > 0) return;
+      finishRespawn();
+    }
+
+    function updateRaceState(dt) {
+      if (currentMode !== "race" || race.finished) {
+        updateRaceTimer();
+        updateRaceNotice(dt);
+        return;
+      }
+
+      race.elapsed += dt;
+      const playerProgress = getTrackProgressAt(car.x, car.y);
+
+      if (race.finishProgress === null && race.elapsed >= race.duration - race.finishLeadTime) {
+        race.finishProgress = playerProgress + race.finishAheadDistance;
+        ensureTrackToProgress(race.finishProgress + 900);
+      }
+
+      if (race.finishProgress !== null) {
+        ensureTrackToProgress(race.finishProgress + 900);
+        if (!car.crashed && playerProgress >= race.finishProgress) {
+          finishRace();
+        }
+      }
+
+      updateRaceTimer();
+      updateRaceNotice(dt);
+    }
+
+    function updateRaceTimer() {
+      const visible = gameStarted && currentMode === "race" && !gameOverEl.classList.contains("visible");
+      raceTimerEl.classList.toggle("hidden", !visible);
+      const playerProgress = gameStarted ? getTrackProgressAt(car.x, car.y) : 0;
+      const remainingMeters = getRaceRemainingMeters(playerProgress);
+      raceTimeEl.textContent = String(remainingMeters);
+    }
+
+    function getRaceRemainingMeters(playerProgress = getTrackProgressAt(car.x, car.y)) {
+      const estimatedFinish = race.finishProgress ?? playerProgress + race.finishAheadDistance + Math.max(0, race.duration - race.finishLeadTime - race.elapsed) * 310;
+      return Math.max(0, Math.round((estimatedFinish - playerProgress) / 10));
+    }
+
+    function updateRaceNotice(dt) {
+      if (!gameStarted || currentMode !== "race" || race.finished || gameOverEl.classList.contains("visible")) {
+        race.noticeTimer = 0;
+        raceNoticeEl.classList.add("hidden");
+        return;
+      }
+
+      race.noticeTimer = Math.max(0, race.noticeTimer - dt);
+
+      const remainingMeters = getRaceRemainingMeters();
+      [1000, 500, 100].forEach((milestone) => {
+        if (remainingMeters <= milestone && !race.shownMilestones.has(milestone)) {
+          race.shownMilestones.add(milestone);
+          race.noticeTimer = 1.8;
+          raceNoticeEl.textContent = `${milestone}m remaining`;
+        }
+      });
+
+      raceNoticeEl.classList.toggle("hidden", race.noticeTimer <= 0);
+    }
+
+    function finishRace() {
+      race.finished = true;
+      gameStarted = false;
+      car.attached = false;
+      car.anchor = null;
+      input.space = false;
+      updateRaceTimer();
+      updateRespawnBanner();
+      updateRaceNotice(0);
+
+      const entries = getRankingEntries();
+      const playerIndex = entries.findIndex((entry) => entry.player);
+      const playerPosition = playerIndex + 1;
+
+      resultTitleEl.textContent = `P${playerPosition} Finish`;
+      resultBodyEl.innerHTML = `
+        <div>You finished ${formatOrdinal(playerPosition)} in ${race.elapsed.toFixed(1)}s</div>
+        <div class="result-list">
+          ${entries
+            .map((entry, index) => {
+              const gap = Math.max(0, (entries[0].progress - entry.progress) / 115);
+              const gapText = index === 0 ? "WINNER" : `+${gap.toFixed(1)}s`;
+              const playerClass = entry.player ? " player" : "";
+              return `<div class="result-row${playerClass}">
+                <span>P${index + 1}</span>
+                <span>${entry.name}</span>
+                <span>${gapText}</span>
+              </div>`;
+            })
+            .join("")}
+        </div>
+      `;
+      gameOverEl.classList.add("visible");
+    }
+
+    function getRankingEntries() {
+      return [
+        { id: "YOU", name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        ...aiOpponents.map((opponent) => ({
+          id: opponent.name,
+          name: opponent.name,
+          progress: opponent.progress,
+          player: false
+        }))
+      ].sort((a, b) => b.progress - a.progress);
+    }
+
+    function formatOrdinal(position) {
+      if (position === 1) return "1st";
+      if (position === 2) return "2nd";
+      if (position === 3) return "3rd";
+      return `${position}th`;
     }
 
     function updateDifficulty(dt) {
@@ -976,6 +1331,58 @@
       });
     }
 
+    function updateLeaderboardPanelF1() {
+      const entries = [
+        { id: "YOU", name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        ...aiOpponents.map((opponent) => ({
+          id: opponent.name,
+          name: opponent.name,
+          progress: opponent.progress,
+          player: false
+        }))
+      ].sort((a, b) => b.progress - a.progress);
+      const now = performance.now();
+      const leaderProgress = entries[0]?.progress || 0;
+
+      entries.forEach((entry, index) => {
+        const position = index + 1;
+        const previous = lastRankPositions.get(entry.id);
+        const delta = previous ? previous - position : 0;
+        if (delta !== 0) {
+          rankChangeEffects.set(entry.id, {
+            delta,
+            until: now + 1400
+          });
+        }
+      });
+
+      leaderboardEl.innerHTML = `<strong>Rank</strong>${entries
+        .map((entry, index) => {
+          const position = index + 1;
+          const effect = rankChangeEffects.get(entry.id);
+          const delta = effect && effect.until > now ? effect.delta : 0;
+          const movementClass = delta > 0 ? "rank-up" : delta < 0 ? "rank-down" : "rank-steady";
+          const playerClass = entry.player ? " player" : "";
+          const changeText = delta > 0 ? `UP +${delta}` : delta < 0 ? `DN ${delta}` : "-";
+          const gapSeconds = Math.max(0, (leaderProgress - entry.progress) / 115);
+          const gapText = index === 0 ? "INTERVAL" : `+${gapSeconds.toFixed(1)}s`;
+          const gapClass = index === 0 ? "rank-gap leader" : "rank-gap";
+
+          return `<div class="rank-row ${movementClass}${playerClass}">
+            <span class="rank-position">${position}</span>
+            <span class="rank-name">${entry.name}</span>
+            <span class="rank-change">${changeText}</span>
+            <span class="${gapClass}">${gapText}</span>
+          </div>`;
+        })
+        .join("")}`;
+
+      lastRankPositions = new Map(entries.map((entry, index) => [entry.id, index + 1]));
+      rankChangeEffects.forEach((effect, id) => {
+        if (effect.until <= now) rankChangeEffects.delete(id);
+      });
+    }
+
     function updatePlayerSpeedDisplay() {
       playerSpeedScale = Number(playerSpeedEl.value);
       playerSpeedValueEl.textContent = `${Math.round(playerSpeedScale * 100)}%`;
@@ -1012,7 +1419,8 @@
       updatePlayerSpeedDisplay();
     }
 
-    function startGame() {
+    function startGame(mode = "endless") {
+      currentMode = mode;
       updatePlayerSpeedDisplay();
       selectDifficulty(selectedDifficulty);
       reset();
@@ -1022,27 +1430,69 @@
       lastTime = performance.now();
     }
 
-    function crash() {
-      gameStarted = false;
+    function startRespawnPenalty() {
+      const target = nearestTrackCenterInfo(car.x, car.y);
       car.crashed = true;
+      car.respawnTimer = 0.5;
+      car.respawnTarget = target;
       car.attached = false;
       car.anchor = null;
       car.vx = 0;
       car.vy = 0;
       car.speed = 0;
+      car.boostTimer = 0;
+      car.slideTimer = 0;
       input.space = false;
-      gameOverEl.classList.add("visible");
+      gameOverEl.classList.remove("visible");
+      resultTitleEl.textContent = "Crashed";
+      resultBodyEl.textContent = "You hit the track edge.";
+      updateRespawnBanner();
+    }
+
+    function finishRespawn() {
+      const target = car.respawnTarget || nearestTrackCenterInfo(car.x, car.y);
+      const speed = getPlayerBaseSpeed() * 0.92;
+      car.x = target.closest.x;
+      car.y = target.closest.y;
+      car.vx = target.tangent.x * speed;
+      car.vy = target.tangent.y * speed;
+      car.angle = Math.atan2(car.vy, car.vx);
+      car.visualAngle = car.angle;
+      car.speed = speed;
+      car.attached = false;
+      car.anchor = null;
+      car.detachedFlash = 0;
+      car.boostTimer = 0;
+      car.slideTimer = 0.18;
+      car.crashed = false;
+      car.respawnTimer = 0;
+      car.respawnTarget = null;
+      input.space = false;
+      syncActiveAnchorToCar();
+      updateRespawnBanner();
+    }
+
+    function updateRespawnBanner() {
+      if (!car.crashed || car.respawnTimer <= 0) {
+        respawnBannerEl.classList.add("hidden");
+        return;
+      }
+
+      respawnBannerEl.classList.remove("hidden");
+      respawnTimeEl.textContent = car.respawnTimer.toFixed(1);
     }
 
     function restartRace() {
       gameOverEl.classList.remove("visible");
-      startGame();
+      startGame(currentMode);
     }
 
     function returnHome() {
       gameStarted = false;
       input.space = false;
       gameOverEl.classList.remove("visible");
+      updateRespawnBanner();
+      updateRaceTimer();
       reset();
       showMainMenu();
     }
@@ -1056,12 +1506,14 @@
       drawGrass(width, height);
       drawTrack();
       drawStartGrid();
+      drawFinishLine();
       drawBoostPads();
       drawSkidMarks();
       drawAnchors();
       drawRope();
       drawAiOpponents();
       drawCar();
+      drawTrackPreview();
     }
 
     function drawGrass(width, height) {
@@ -1104,6 +1556,82 @@
       drawOffsetPolyline(points, scaled(road.width / 2 - 10));
     }
 
+    function drawTrackPreview() {
+      const visible = gameStarted && !gameOverEl.classList.contains("visible");
+      trackPreviewEl.classList.toggle("hidden", !visible);
+      if (!visible) return;
+
+      const cssSize = 176;
+      const dpr = window.devicePixelRatio || 1;
+      const pixelSize = Math.floor(cssSize * dpr);
+      if (trackPreviewEl.width !== pixelSize || trackPreviewEl.height !== pixelSize) {
+        trackPreviewEl.width = pixelSize;
+        trackPreviewEl.height = pixelSize;
+      }
+
+      previewCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      previewCtx.clearRect(0, 0, cssSize, cssSize);
+      previewCtx.save();
+      previewCtx.beginPath();
+      previewCtx.arc(cssSize / 2, cssSize / 2, cssSize / 2 - 5, 0, Math.PI * 2);
+      previewCtx.clip();
+
+      previewCtx.fillStyle = "rgba(28, 37, 42, 0.92)";
+      previewCtx.fillRect(0, 0, cssSize, cssSize);
+
+      const mapPoint = (worldPoint) => {
+        const screen = worldToScreen(worldPoint.x, worldPoint.y);
+        return {
+          x: (screen.x / window.innerWidth) * cssSize,
+          y: (screen.y / window.innerHeight) * cssSize
+        };
+      };
+
+      const visiblePoints = buildVisibleWorldTrackPoints();
+      if (visiblePoints.length > 1) {
+        previewCtx.lineCap = "round";
+        previewCtx.lineJoin = "round";
+        previewCtx.strokeStyle = "rgba(238, 243, 244, 0.95)";
+        previewCtx.lineWidth = 14;
+        previewCtx.beginPath();
+        visiblePoints.forEach((point, index) => {
+          const mapped = mapPoint(point);
+          if (index === 0) previewCtx.moveTo(mapped.x, mapped.y);
+          else previewCtx.lineTo(mapped.x, mapped.y);
+        });
+        previewCtx.stroke();
+
+        previewCtx.strokeStyle = "rgba(58, 68, 74, 0.95)";
+        previewCtx.lineWidth = 9;
+        previewCtx.stroke();
+      }
+
+      drawPreviewDot(car.x, car.y, "#f2c12f", 5.8);
+      aiOpponents.forEach((opponent) => {
+        drawPreviewDot(opponent.x, opponent.y, opponent.color, 4.7);
+      });
+
+      previewCtx.restore();
+    }
+
+    function drawPreviewDot(x, y, color, radius) {
+      const screen = worldToScreen(x, y);
+      if (screen.x < -40 || screen.x > window.innerWidth + 40 || screen.y < -40 || screen.y > window.innerHeight + 40) return;
+
+      const size = 176;
+      const px = (screen.x / window.innerWidth) * size;
+      const py = (screen.y / window.innerHeight) * size;
+      previewCtx.save();
+      previewCtx.fillStyle = color;
+      previewCtx.strokeStyle = "#11181b";
+      previewCtx.lineWidth = 2;
+      previewCtx.beginPath();
+      previewCtx.arc(px, py, radius, 0, Math.PI * 2);
+      previewCtx.fill();
+      previewCtx.stroke();
+      previewCtx.restore();
+    }
+
     function drawStartGrid() {
       for (let i = 0; i < 5; i += 1) {
         const slot = getStartGridSlot(i);
@@ -1121,6 +1649,42 @@
         ctx.stroke();
         ctx.restore();
       }
+    }
+
+    function drawFinishLine() {
+      if (currentMode !== "race" || race.finishProgress === null) return;
+
+      const point = getTrackPointAtProgress(race.finishProgress);
+      const p = worldToScreen(point.x, point.y);
+      if (p.x < -220 || p.x > window.innerWidth + 220 || p.y < -220 || p.y > window.innerHeight + 220) return;
+
+      const angle = Math.atan2(point.tangent.y, point.tangent.x);
+      const depth = 70;
+      const width = road.width - 36;
+      const rows = 3;
+      const cols = 8;
+      const cellW = depth / rows;
+      const cellH = width / cols;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(angle);
+      ctx.scale(view.zoom, view.zoom);
+
+      ctx.fillStyle = "rgba(15, 20, 24, 0.22)";
+      ctx.fillRect(-depth / 2 - 6, -width / 2 - 6, depth + 12, width + 12);
+
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          ctx.fillStyle = (row + col) % 2 === 0 ? "#f4f4f0" : "#171b1e";
+          ctx.fillRect(-depth / 2 + row * cellW, -width / 2 + col * cellH, cellW + 0.5, cellH + 0.5);
+        }
+      }
+
+      ctx.strokeStyle = "#ffd84d";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(-depth / 2, -width / 2, depth, width);
+      ctx.restore();
     }
 
     function buildTrackPoints() {
@@ -1255,15 +1819,44 @@
     }
 
     function distanceToTrackCenter(x, y) {
+      return nearestTrackCenterInfo(x, y).distance;
+    }
+
+    function nearestTrackCenterInfo(x, y) {
       const points = buildWorldTrackPoints();
-      let best = Infinity;
+      let bestInfo = null;
+      let bestProgress = 0;
+      let progress = 0;
 
       for (let i = 0; i < points.length - 1; i += 1) {
-        const distance = distanceToSegment(x, y, points[i], points[i + 1]);
-        if (distance < best) best = distance;
+        const a = points[i];
+        const b = points[i + 1];
+        const segmentLength = Math.hypot(b.x - a.x, b.y - a.y);
+        const info = projectPointToSegment(x, y, a, b);
+
+        if (!bestInfo || info.distance < bestInfo.distance) {
+          bestInfo = info;
+          bestProgress = progress + info.t * segmentLength;
+        }
+
+        progress += segmentLength;
       }
 
-      return best;
+      if (bestInfo) {
+        return {
+          ...bestInfo,
+          progress: bestProgress
+        };
+      }
+
+      return {
+        t: 0,
+        closest: { x: car.x, y: car.y },
+        distance: 0,
+        tangent: { x: Math.cos(car.angle), y: Math.sin(car.angle) },
+        normal: { x: -Math.sin(car.angle), y: Math.cos(car.angle) },
+        progress: 0
+      };
     }
 
     function getTrackProgressAt(x, y) {
@@ -1686,7 +2279,8 @@
     });
 
     playerSpeedEl.addEventListener("input", updatePlayerSpeedDisplay);
-    startButtonEl.addEventListener("click", startGame);
+    startButtonEl.addEventListener("click", () => startGame("endless"));
+    raceButtonEl.addEventListener("click", () => startGame("race"));
     settingsButtonEl.addEventListener("click", showSettingsMenu);
     backToMainButtonEl.addEventListener("click", showMainMenu);
     restartButtonEl.addEventListener("click", restartRace);
