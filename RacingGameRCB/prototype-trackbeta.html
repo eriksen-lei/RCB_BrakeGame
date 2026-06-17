@@ -777,20 +777,19 @@
     function generateNextTrackSection() {
       const straightLength = generator.section === 0 ? 780 : 620 + (generator.section % 3) * 110;
       let bestCandidate = null;
-      let bestClearance = -Infinity;
+      let bestScore = -Infinity;
+      const candidates = buildTrackSectionCandidates(straightLength);
+      const safeClearance = road.width * 1.35;
 
-      for (let attempt = 0; attempt < 18; attempt += 1) {
-        const turnAbs = chooseTurnAngle(generator.heading, generator.section, attempt);
-        const turnDir = chooseTurnDirection(generator.heading, generator.section, turnAbs, attempt);
-        const candidate = buildTrackSectionCandidate(straightLength, turnAbs, turnDir);
-        const clearance = getTrackCandidateClearance(candidate);
+      for (const candidate of candidates) {
+        const score = scoreTrackCandidate(candidate);
 
-        if (clearance > bestClearance) {
+        if (score > bestScore) {
           bestCandidate = candidate;
-          bestClearance = clearance;
+          bestScore = score;
         }
 
-        if (clearance >= road.width * 1.08) {
+        if (candidate.clearance >= safeClearance && candidate.forwardTravel >= -80) {
           break;
         }
       }
@@ -799,6 +798,47 @@
       generator.section += 1;
       cachedWorldTrackPoints = null;
       cachedTrackMetrics = null;
+    }
+
+    function buildTrackSectionCandidates(baseStraightLength) {
+      const lengths = generator.section === 0
+        ? [baseStraightLength]
+        : [baseStraightLength, baseStraightLength + 260, baseStraightLength + 520, baseStraightLength + 820];
+      const angles = buildTurnAngleOptions();
+      const directions = buildTurnDirectionOptions();
+      const candidates = [];
+
+      for (const length of lengths) {
+        for (const turnAbs of angles) {
+          for (const turnDir of directions) {
+            candidates.push(buildTrackSectionCandidate(length, turnAbs, turnDir));
+          }
+        }
+      }
+
+      return candidates;
+    }
+
+    function buildTurnAngleOptions() {
+      const angles = [Math.PI / 2, Math.PI / 4];
+      const normalized = normalizeAngle(generator.heading);
+      const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
+      if (horizontal && generator.section > 1 && generator.section >= generator.nextHairpinSection) {
+        angles.unshift(Math.PI);
+      }
+      return angles;
+    }
+
+    function buildTurnDirectionOptions() {
+      const normalized = normalizeAngle(generator.heading);
+      const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
+      if (horizontal) {
+        const preferred = Math.cos(normalized) > 0 ? -1 : 1;
+        return [preferred, -preferred];
+      }
+
+      const preferred = generator.section % 2 === 0 ? 1 : -1;
+      return [preferred, -preferred];
     }
 
     function buildTrackSectionCandidate(straightLength, turnAbs, turnDir) {
@@ -820,8 +860,21 @@
         x: center.x + Math.cos(end) * radius,
         y: center.y + Math.sin(end) * radius
       };
+      const exitHeading = generator.heading + turnDir * turnAbs;
+      const forwardTravel = generator.point.y - exit.y;
+      const centerDrift = Math.abs(exit.x);
 
-      return { from, to, center, radius, start, end, exit, turnDir, turnAbs, straightLength };
+      return { from, to, center, radius, start, end, exit, exitHeading, turnDir, turnAbs, straightLength, forwardTravel, centerDrift };
+    }
+
+    function scoreTrackCandidate(candidate) {
+      candidate.clearance = getTrackCandidateClearance(candidate);
+      const forwardScore = candidate.forwardTravel * 0.45;
+      const driftPenalty = Math.max(0, candidate.centerDrift - 1200) * 0.65;
+      const backwardPenalty = candidate.forwardTravel < -80 ? Math.abs(candidate.forwardTravel) * 3.2 : 0;
+      const downwardHeadingPenalty = Math.sin(candidate.exitHeading) > 0.35 ? 420 : 0;
+      const angleBonus = candidate.turnAbs === Math.PI / 4 ? 70 : 0;
+      return candidate.clearance * 3 + forwardScore + angleBonus - driftPenalty - backwardPenalty - downwardHeadingPenalty;
     }
 
     function appendTrackSection(candidate) {
@@ -874,36 +927,6 @@
         if (remaining <= 0) return i;
       }
       return 0;
-    }
-
-    function chooseTurnAngle(heading, section, attempt = 0) {
-      const normalized = normalizeAngle(heading);
-      const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
-      const canHairpin = horizontal && section > 1;
-      if (canHairpin && section >= generator.nextHairpinSection && attempt < 4) {
-        return Math.PI;
-      }
-      const canGentleTurn = section > 1 && (attempt % 4 === 1 || (attempt < 6 && Math.random() < 0.34));
-      if (canGentleTurn) {
-        return Math.PI / 4;
-      }
-      return Math.PI / 2;
-    }
-
-    function chooseTurnDirection(heading, section, turnAbs, attempt = 0) {
-      const normalized = normalizeAngle(heading);
-      const horizontal = Math.abs(Math.sin(normalized)) < 0.2;
-      if (horizontal) {
-        const preferred = Math.cos(normalized) > 0 ? -1 : 1;
-        return attempt % 2 === 0 ? preferred : -preferred;
-      }
-
-      const candidate = section % 2 === 0 ? 1 : -1;
-      const nextHeading = heading + candidate * turnAbs;
-      const driftX = generator.point.x + Math.cos(nextHeading) * 800;
-      if (driftX > 760) return -1;
-      if (driftX < -760) return 1;
-      return attempt % 3 === 2 ? -candidate : candidate;
     }
 
     function addBoostPadsOnStraight(from, to, heading, length) {
