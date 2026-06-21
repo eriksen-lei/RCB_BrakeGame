@@ -997,6 +997,18 @@
     bikeSpriteSheet.src = "Resources/bike_sprites_transparent.png";
     const rcbLogoImage = new Image();
     rcbLogoImage.src = "Resources/rcb-logo.png";
+    const tracksideLogoConfig = {
+      width: 178,
+      height: 88,
+      spacing: {
+        fixed: 980,
+        infinite: 900
+      },
+      clearance: 26,
+      baseGap: 132,
+      offsetStep: 72,
+      maxOffsetAttempts: 6
+    };
     const bikeSprites = [
       { x: 100, y: 206, w: 454, h: 1165 },
       { x: 643, y: 210, w: 456, h: 1161 },
@@ -1298,6 +1310,7 @@
     };
     let cachedWorldTrackPoints = null;
     let cachedTrackMetrics = null;
+    let tracksideLogoPoseCache = new Map();
     let lastTime = performance.now();
     let activeAnchorIndex = 0;
     let pacenoteHintState = { anchor: null, startedAt: 0, previousNotes: [] };
@@ -1351,8 +1364,7 @@
       trackSegments = [];
       anchors = [];
       boostPads = [];
-      cachedWorldTrackPoints = null;
-      cachedTrackMetrics = null;
+      invalidateTrackGeometryCache();
 
       if (selectedMap === "fixed") {
         buildFixedCircuitTrack();
@@ -1426,6 +1438,12 @@
       };
     }
 
+    function invalidateTrackGeometryCache() {
+      cachedWorldTrackPoints = null;
+      cachedTrackMetrics = null;
+      tracksideLogoPoseCache.clear();
+    }
+
     function buildFixedCircuitTrack() {
       const points = fixedMapPoints.map(toFixedMapWorldPoint);
       const corners = points.map((point, index) => getFixedCorner(points, index));
@@ -1462,8 +1480,7 @@
         }
       }
 
-      cachedWorldTrackPoints = null;
-      cachedTrackMetrics = null;
+      invalidateTrackGeometryCache();
       pruneFixedHairpinAnchors();
       assignFixedAnchorProgress();
       numberFixedAnchors();
@@ -1657,8 +1674,7 @@
 
       appendTrackSection(bestCandidate);
       generator.section += 1;
-      cachedWorldTrackPoints = null;
-      cachedTrackMetrics = null;
+      invalidateTrackGeometryCache();
     }
 
     function buildTrackSectionCandidates(baseStraightLength) {
@@ -2974,7 +2990,7 @@
       const metrics = buildTrackMetrics();
       if (!metrics.total) return;
 
-      const spacing = selectedMap === "fixed" ? 1650 : 1450;
+      const spacing = selectedMap === "fixed" ? tracksideLogoConfig.spacing.fixed : tracksideLogoConfig.spacing.infinite;
       const playerProgress = gameStarted ? getTrackProgressAt(car.x, car.y) : 0;
       const start = selectedMap === "fixed" ? 520 : Math.max(0, Math.floor((playerProgress - 1300) / spacing) * spacing);
       const end = selectedMap === "fixed" ? metrics.total : playerProgress + 3600;
@@ -2987,22 +3003,20 @@
     }
 
     function drawTracksideLogoAtProgress(progress, index) {
-      const point = getTrackPointAtProgress(progress);
-      const side = index % 2 === 0 ? 1 : -1;
-      const offset = road.width / 2 + 92 + (index % 3) * 16;
-      const worldX = point.x + point.normal.x * side * offset;
-      const worldY = point.y + point.normal.y * side * offset;
-      const screen = worldToScreen(worldX, worldY);
+      const pose = getSafeTracksideLogoPose(progress, index);
+      if (!pose) return;
+
+      const screen = worldToScreen(pose.x, pose.y);
       const margin = 180;
       if (screen.x < -margin || screen.x > window.innerWidth + margin || screen.y < -margin || screen.y > window.innerHeight + margin) return;
 
       ctx.save();
       ctx.translate(screen.x, screen.y);
-      ctx.rotate(Math.atan2(point.tangent.y, point.tangent.x));
+      ctx.rotate(pose.angle);
       ctx.scale(view.zoom, view.zoom);
 
-      const boardW = 178;
-      const boardH = 88;
+      const boardW = tracksideLogoConfig.width;
+      const boardH = tracksideLogoConfig.height;
       ctx.globalAlpha = 0.96;
       ctx.fillStyle = "rgba(0, 0, 0, 0.24)";
       roundRect(-boardW / 2 + 8, -boardH / 2 + 8, boardW, boardH, 8);
@@ -3040,6 +3054,58 @@
       }
 
       ctx.restore();
+    }
+
+    function getSafeTracksideLogoPose(progress, index) {
+      const cacheKey = `${selectedMap}:${trackSegments.length}:${Math.round(progress)}:${index}:${road.width}`;
+      if (tracksideLogoPoseCache.has(cacheKey)) return tracksideLogoPoseCache.get(cacheKey);
+
+      const point = getTrackPointAtProgress(progress);
+      const preferredSide = index % 2 === 0 ? 1 : -1;
+      const sideOptions = [preferredSide, -preferredSide];
+      const baseOffset = road.width / 2 + tracksideLogoConfig.baseGap + (index % 2) * 18;
+      const metrics = buildTrackMetrics();
+
+      for (const side of sideOptions) {
+        for (let attempt = 0; attempt < tracksideLogoConfig.maxOffsetAttempts; attempt += 1) {
+          const offset = baseOffset + attempt * tracksideLogoConfig.offsetStep;
+          const pose = {
+            x: point.x + point.normal.x * side * offset,
+            y: point.y + point.normal.y * side * offset,
+            angle: Math.atan2(point.tangent.y, point.tangent.x),
+            tangent: point.tangent,
+            normal: point.normal
+          };
+
+          if (isTracksideLogoPoseSafe(pose, metrics)) {
+            tracksideLogoPoseCache.set(cacheKey, pose);
+            return pose;
+          }
+        }
+      }
+
+      tracksideLogoPoseCache.set(cacheKey, null);
+      return null;
+    }
+
+    function isTracksideLogoPoseSafe(pose, metrics) {
+      const halfW = tracksideLogoConfig.width / 2;
+      const halfH = tracksideLogoConfig.height / 2;
+      const minDistance = road.width / 2 + tracksideLogoConfig.clearance;
+      const samples = [];
+      for (const y of [-halfH, 0, halfH]) {
+        for (const x of [-halfW, -halfW * 0.5, 0, halfW * 0.5, halfW]) {
+          samples.push({ x, y });
+        }
+      }
+
+      for (const sample of samples) {
+        const worldX = pose.x + pose.tangent.x * sample.x + pose.normal.x * sample.y;
+        const worldY = pose.y + pose.tangent.y * sample.x + pose.normal.y * sample.y;
+        if (distanceToTrackCenterInMetrics(worldX, worldY, metrics) < minDistance) return false;
+      }
+
+      return true;
     }
 
     function drawTrack() {
@@ -3423,6 +3489,19 @@
 
     function distanceToTrackCenter(x, y) {
       return nearestTrackCenterInfo(x, y).distance;
+    }
+
+    function distanceToTrackCenterInMetrics(x, y, metrics) {
+      const points = metrics.points;
+      let bestDistance = Infinity;
+
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const distance = distanceToSegment(x, y, points[i], points[i + 1]);
+        if (distance < bestDistance) bestDistance = distance;
+        if (bestDistance <= road.width / 2) break;
+      }
+
+      return bestDistance;
     }
 
     function nearestTrackCenterInfo(x, y) {
