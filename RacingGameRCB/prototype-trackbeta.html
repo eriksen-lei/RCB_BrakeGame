@@ -28,29 +28,13 @@
     }
 
     .hint {
-      position: fixed;
-      left: 24px;
-      top: 22px;
-      padding: 14px 16px;
-      border-radius: 8px;
-      background: rgba(15, 20, 24, 0.78);
-      color: #fff;
-      font-size: 15px;
-      line-height: 1.6;
-      pointer-events: none;
-    }
-
-    .hint strong {
-      display: block;
-      margin-bottom: 4px;
-      color: #ffd84d;
-      font-size: 20px;
+      display: none;
     }
 
     .leaderboard {
       position: fixed;
       left: 24px;
-      top: 168px;
+      top: 22px;
       width: 238px;
       padding: 12px 14px;
       border-radius: 8px;
@@ -66,6 +50,24 @@
       margin-bottom: 6px;
       color: #ffd84d;
       font-size: 18px;
+    }
+
+    .rank-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+      color: #ffd84d;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .lap-counter {
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0;
     }
 
     .leaderboard .player {
@@ -251,6 +253,18 @@
       gap: 8px;
     }
 
+    .language-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .map-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
     .menu-button {
       min-height: 42px;
       border: 2px solid rgba(255, 255, 255, 0.18);
@@ -373,7 +387,7 @@
     .race-timer {
       position: fixed;
       left: 50%;
-      top: 22px;
+      top: 112px;
       min-width: 150px;
       padding: 10px 16px;
       border-radius: 8px;
@@ -399,7 +413,7 @@
     .race-notice {
       position: fixed;
       left: 50%;
-      top: 82px;
+      top: 166px;
       min-width: 300px;
       padding: 16px 26px;
       border: 4px solid #fff;
@@ -448,6 +462,118 @@
       display: none;
     }
 
+    .full-map {
+      position: fixed;
+      left: 50%;
+      bottom: 10px;
+      width: 300px;
+      height: 178px;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      opacity: 0.72;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .full-map.hidden {
+      display: none;
+    }
+
+    .autopilot-panel {
+      position: fixed;
+      left: 24px;
+      bottom: 22px;
+      width: 240px;
+      padding: 12px 14px;
+      border: 2px solid rgba(255, 216, 77, 0.58);
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.84);
+      color: #fff;
+      z-index: 3;
+    }
+
+    .autopilot-panel.hidden {
+      display: none;
+    }
+
+    .pause-button {
+      position: fixed;
+      right: 24px;
+      top: 214px;
+      min-width: 92px;
+      min-height: 38px;
+      border: 2px solid rgba(255, 216, 77, 0.74);
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.84);
+      color: #ffd84d;
+      font: 900 13px Arial, "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+      z-index: 4;
+    }
+
+    .pause-button.hidden {
+      display: none;
+    }
+
+    .pause-button.active {
+      background: #ffd84d;
+      color: #1c252a;
+    }
+
+    .pause-banner {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      display: none;
+      padding: 14px 24px;
+      border: 3px solid rgba(255, 216, 77, 0.88);
+      border-radius: 8px;
+      background: rgba(15, 20, 24, 0.84);
+      color: #ffd84d;
+      font: 900 24px Arial, "Microsoft YaHei", sans-serif;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .pause-banner.visible {
+      display: block;
+    }
+
+    .autopilot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .autopilot-button {
+      min-width: 92px;
+      min-height: 34px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font: 800 13px Arial, "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+    }
+
+    .autopilot-button.active {
+      border-color: #ffd84d;
+      background: #ffd84d;
+      color: #1c252a;
+    }
+
+    .autopilot-slider {
+      width: 100%;
+      accent-color: #ffd84d;
+    }
+
     .result-list {
       margin-top: 14px;
       text-align: left;
@@ -471,12 +597,7 @@
 <body>
   <canvas id="game"></canvas>
   <canvas class="track-preview hidden" id="trackPreview"></canvas>
-  <div class="hint">
-    <strong>Sling Drift 核心机制</strong>
-    按住 Space：连接最近锚点绕弯<br />
-    松开 Space：离开锚点沿切线前进<br />
-    R：重置
-  </div>
+  <canvas class="full-map hidden" id="fullMap"></canvas>
 
   <div class="leaderboard" id="leaderboard">
     <strong>排名</strong>
@@ -490,61 +611,92 @@
   </div>
 
   <div class="respawn-banner hidden" id="respawnBanner">
-    Respawning <span class="respawn-time" id="respawnTime">0.5</span>s
+    <span id="respawnLabel">复位中</span> <span class="respawn-time" id="respawnTime">0.5</span>s
   </div>
 
   <div class="race-timer hidden" id="raceTimer">
-    Remaining <span id="raceTime">--</span>m
+    <span id="raceTimerLabel">剩余</span> <span id="raceTime">--</span>m
   </div>
 
-  <div class="race-notice hidden" id="raceNotice">1000m remaining</div>
+  <div class="race-notice hidden" id="raceNotice">1000m 剩余</div>
+
+  <div class="autopilot-panel hidden" id="autopilotPanel">
+    <div class="autopilot-row">
+      <span id="autopilotLabel">自动驾驶</span>
+      <button class="autopilot-button" id="autopilotButton" type="button">OFF</button>
+    </div>
+    <div class="autopilot-row">
+      <span id="autopilotSpeedLabel">测试速度</span>
+      <span id="autopilotSpeedValue">100%</span>
+    </div>
+    <input class="autopilot-slider" id="autopilotSpeed" type="range" min="1" max="2" step="0.05" value="1" />
+  </div>
+
+  <button class="pause-button hidden" id="pauseButton" type="button">Pause</button>
+  <div class="pause-banner" id="pauseBanner">Pause</div>
 
   <div class="start-screen" id="startScreen">
     <div class="menu-panel">
       <div class="menu-view" id="mainMenu">
-      <h1>Brake Drift Race</h1>
-      <p>Hold Space to hook the corner anchor, release to sling out of the turn.</p>
+      <h1 id="menuTitle">刹车漂移赛</h1>
+      <p id="menuSubtitle">按住 Space 连接弯心锚点，松开后沿切线甩出弯道。</p>
 
       <div class="menu-section">
-        <strong>难度选择</strong>
+        <strong id="difficultyLabel">难度选择</strong>
         <div class="difficulty-buttons">
-          <button class="menu-button" type="button" data-difficulty="easy">Easy</button>
-          <button class="menu-button active" type="button" data-difficulty="normal">Normal</button>
-          <button class="menu-button" type="button" data-difficulty="hard">Hard</button>
+          <button class="menu-button" type="button" data-difficulty="easy">简单</button>
+          <button class="menu-button active" type="button" data-difficulty="normal">普通</button>
+          <button class="menu-button" type="button" data-difficulty="hard">困难</button>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <strong id="trackLabel">赛道</strong>
+        <div class="map-buttons">
+          <button class="menu-button active" type="button" data-map="infinite">无限赛道</button>
+          <button class="menu-button" type="button" data-map="fixed">固定赛道</button>
         </div>
       </div>
 
       <div class="menu-actions">
-        <button class="menu-button primary start-action" id="startButton" type="button">Practice Mode</button>
-        <button class="menu-button primary" id="raceButton" type="button">Race Mode</button>
-        <button class="menu-button" id="settingsButton" type="button">Settings</button>
+        <button class="menu-button primary start-action" id="startButton" type="button">练习模式</button>
+        <button class="menu-button primary" id="raceButton" type="button">比赛模式</button>
+        <button class="menu-button" id="settingsButton" type="button">设置</button>
       </div>
       </div>
 
       <div class="menu-view hidden" id="settingsMenu">
-      <h1>Settings</h1>
+      <h1 id="settingsTitle">设置</h1>
       <div class="menu-section">
-        <strong>设置</strong>
+        <strong id="settingsSectionLabel">设置</strong>
         <div class="setting-row">
-          <span>小车速度</span>
+          <span id="playerSpeedLabel">小车速度</span>
           <span id="playerSpeedValue">100%</span>
         </div>
         <input class="menu-slider" id="playerSpeed" type="range" min="0.8" max="1.3" step="0.05" value="1" />
       </div>
 
+      <div class="menu-section">
+        <strong id="languageLabel">语言</strong>
+        <div class="language-buttons">
+          <button class="menu-button active" type="button" data-language="zh">中文</button>
+          <button class="menu-button" type="button" data-language="en">English</button>
+        </div>
+      </div>
+
       <div class="menu-actions">
-        <button class="menu-button primary" id="backToMainButton" type="button">Back</button>
+        <button class="menu-button primary" id="backToMainButton" type="button">返回</button>
       </div>
       </div>
     </div>
   </div>
 
   <div class="game-over" id="gameOver">
-    <strong id="resultTitle">Crashed</strong>
-    <div id="resultBody">You hit the track edge.</div>
+    <strong id="resultTitle">撞车</strong>
+    <div id="resultBody">你撞到了赛道边缘。</div>
     <div class="game-over-actions">
-      <button class="menu-button primary" id="restartButton" type="button">Restart</button>
-      <button class="menu-button" id="homeButton" type="button">Home</button>
+      <button class="menu-button primary" id="restartButton" type="button">重新开始</button>
+      <button class="menu-button" id="homeButton" type="button">主页</button>
     </div>
     <strong>撞到赛道边缘</strong>
     按 R 重置
@@ -555,6 +707,8 @@
     const ctx = canvas.getContext("2d");
     const trackPreviewEl = document.getElementById("trackPreview");
     const previewCtx = trackPreviewEl.getContext("2d");
+    const fullMapEl = document.getElementById("fullMap");
+    const fullMapCtx = fullMapEl.getContext("2d");
     const gameOverEl = document.getElementById("gameOver");
     const leaderboardEl = document.getElementById("leaderboard");
     const speedometerEl = document.getElementById("speedometer");
@@ -564,12 +718,30 @@
     const raceTimerEl = document.getElementById("raceTimer");
     const raceTimeEl = document.getElementById("raceTime");
     const raceNoticeEl = document.getElementById("raceNotice");
+    const respawnLabelEl = document.getElementById("respawnLabel");
+    const raceTimerLabelEl = document.getElementById("raceTimerLabel");
+    const autopilotPanelEl = document.getElementById("autopilotPanel");
+    const autopilotLabelEl = document.getElementById("autopilotLabel");
+    const autopilotButtonEl = document.getElementById("autopilotButton");
+    const autopilotSpeedEl = document.getElementById("autopilotSpeed");
+    const autopilotSpeedLabelEl = document.getElementById("autopilotSpeedLabel");
+    const autopilotSpeedValueEl = document.getElementById("autopilotSpeedValue");
+    const pauseButtonEl = document.getElementById("pauseButton");
+    const pauseBannerEl = document.getElementById("pauseBanner");
     const startScreenEl = document.getElementById("startScreen");
     const mainMenuEl = document.getElementById("mainMenu");
     const settingsMenuEl = document.getElementById("settingsMenu");
+    const menuTitleEl = document.getElementById("menuTitle");
+    const menuSubtitleEl = document.getElementById("menuSubtitle");
+    const difficultyLabelEl = document.getElementById("difficultyLabel");
+    const trackLabelEl = document.getElementById("trackLabel");
     const startButtonEl = document.getElementById("startButton");
     const raceButtonEl = document.getElementById("raceButton");
     const settingsButtonEl = document.getElementById("settingsButton");
+    const settingsTitleEl = document.getElementById("settingsTitle");
+    const settingsSectionLabelEl = document.getElementById("settingsSectionLabel");
+    const playerSpeedLabelEl = document.getElementById("playerSpeedLabel");
+    const languageLabelEl = document.getElementById("languageLabel");
     const backToMainButtonEl = document.getElementById("backToMainButton");
     const restartButtonEl = document.getElementById("restartButton");
     const homeButtonEl = document.getElementById("homeButton");
@@ -609,11 +781,18 @@
     let aiStrength = 0.88;
     let gameStarted = false;
     let selectedDifficulty = "normal";
+    let selectedMap = "infinite";
     let playerSpeedScale = Number(playerSpeedEl.value);
+    let autopilotSpeedScale = Number(autopilotSpeedEl.value);
     let displayedSpeed = 0;
     let lastRankPositions = new Map();
     let rankChangeEffects = new Map();
     let currentMode = "endless";
+    let isPaused = false;
+
+    const autopilot = {
+      enabled: false
+    };
 
     const race = {
       duration: 60,
@@ -626,11 +805,142 @@
       shownMilestones: new Set()
     };
 
+    const practiceLap = {
+      completed: 0,
+      lastProgress: 0,
+      totalProgress: 0
+    };
+
     const difficultySettings = {
       easy: { aiStrength: 0.70, label: "Easy" },
       normal: { aiStrength: 0.88, label: "Normal" },
       hard: { aiStrength: 1.08, label: "Hard" }
     };
+
+    let selectedLanguage = "zh";
+    const translations = {
+      zh: {
+        menuTitle: "刹车漂移赛",
+        menuSubtitle: "按住 Space 连接弯心锚点，松开后沿切线甩出弯道。",
+        difficulty: "难度选择",
+        easy: "简单",
+        normal: "普通",
+        hard: "困难",
+        track: "赛道",
+        infiniteTrack: "无限赛道",
+        fixedCircuit: "固定赛道",
+        practiceMode: "练习模式",
+        raceMode: "比赛模式",
+        settings: "设置",
+        restart: "重新开始",
+        home: "主页",
+        playerSpeed: "小车速度",
+        language: "语言",
+        back: "返回",
+        rank: "排名",
+        lap: "圈",
+        remaining: "剩余",
+        respawning: "复位中",
+        autoDrive: "自动驾驶",
+        testSpeed: "测试速度",
+        you: "你",
+        on: "开",
+        off: "关",
+        crashed: "撞车",
+        crashBody: "你撞到了赛道边缘。",
+        finish: "完赛",
+        finished: "你以第 {position} 名完赛，用时 {time}s",
+        winner: "冠军",
+        interval: "间隔",
+        left: "左转",
+        right: "右转",
+        softTurn: "缓弯",
+        mediumTurn: "中弯",
+        sharpTurn: "急弯",
+        hairpinTurn: "发卡弯",
+        metersRemaining: "{meters}m 剩余"
+      },
+      en: {
+        menuTitle: "Brake Drift Race",
+        menuSubtitle: "Hold Space to hook the corner anchor, release to sling out of the turn.",
+        difficulty: "Difficulty",
+        easy: "Easy",
+        normal: "Normal",
+        hard: "Hard",
+        track: "Track",
+        infiniteTrack: "Infinite Track",
+        fixedCircuit: "Fixed Circuit",
+        practiceMode: "Practice Mode",
+        raceMode: "Race Mode",
+        settings: "Settings",
+        restart: "Restart",
+        home: "Home",
+        playerSpeed: "Car Speed",
+        language: "Language",
+        back: "Back",
+        rank: "Rank",
+        lap: "LAP",
+        remaining: "Remaining",
+        respawning: "Respawning",
+        autoDrive: "Auto Drive",
+        testSpeed: "Test Speed",
+        you: "YOU",
+        on: "ON",
+        off: "OFF",
+        crashed: "Crashed",
+        crashBody: "You hit the track edge.",
+        finish: "Finish",
+        finished: "You finished {position} in {time}s",
+        winner: "WINNER",
+        interval: "INTERVAL",
+        left: "LEFT",
+        right: "RIGHT",
+        softTurn: "SOFT TURN",
+        mediumTurn: "MEDIUM TURN",
+        sharpTurn: "SHARP TURN",
+        hairpinTurn: "HAIRPIN TURN",
+        metersRemaining: "{meters}m remaining"
+      }
+    };
+
+    const fixedMapScale = 8;
+    const fixedMapOrigin = { x: 1020, y: 620 };
+    const fixedMapStart = { x: 0, y: 420 };
+    const fixedMapCornerRadius = 340;
+    const fixedMapPoints = [
+      { x: 960, y: 585 },
+      { x: 520, y: 585 },
+      { x: 555, y: 525 },
+      { x: 585, y: 430 },
+      { x: 650, y: 335 },
+      { x: 830, y: 270 },
+      { x: 1040, y: 165 },
+      { x: 1135, y: 160 },
+      { x: 1170, y: 390 },
+      { x: 1240, y: 470 },
+      { x: 1360, y: 455 },
+      { x: 1440, y: 380 },
+      { x: 1540, y: 430 },
+      { x: 1665, y: 585 },
+      { x: 1725, y: 650 },
+      { x: 1680, y: 735 },
+      { x: 1470, y: 745 },
+      { x: 1265, y: 755 },
+      { x: 1195, y: 785 },
+      { x: 1285, y: 835 },
+      { x: 1305, y: 975 },
+      { x: 1225, y: 1060 },
+      { x: 1045, y: 900 },
+      { x: 965, y: 850 },
+      { x: 840, y: 910 },
+      { x: 690, y: 890 },
+      { x: 615, y: 820 },
+      { x: 660, y: 765 },
+      { x: 930, y: 720 },
+      { x: 1220, y: 675 },
+      { x: 1500, y: 640 },
+      { x: 1545, y: 585 }
+    ];
 
     const generator = {
       point: { x: 0, y: 420 },
@@ -668,8 +978,10 @@
     let cachedTrackMetrics = null;
     let lastTime = performance.now();
     let activeAnchorIndex = 0;
+    let fixedStartProgress = 0;
 
     function reset() {
+      isPaused = false;
       resetGeneratedTrack();
       const grid = getStartGridSlot(0);
       const startSpeed = getPlayerBaseSpeed() * 1.116;
@@ -696,10 +1008,11 @@
       lastRankPositions = new Map();
       rankChangeEffects = new Map();
       race.elapsed = 0;
-      race.finishProgress = null;
       race.finished = false;
       race.noticeTimer = 0;
       race.shownMilestones = new Set();
+      resetPracticeLapCounter();
+      race.finishProgress = currentMode === "race" && selectedMap === "fixed" ? getFixedRaceFinishProgress() : null;
       resetAiOpponents();
       gameOverEl.classList.remove("visible");
       updateRespawnBanner();
@@ -716,6 +1029,12 @@
       boostPads = [];
       cachedWorldTrackPoints = null;
       cachedTrackMetrics = null;
+
+      if (selectedMap === "fixed") {
+        buildFixedCircuitTrack();
+        return;
+      }
+
       generator.point = { x: 0, y: 420 };
       generator.heading = -Math.PI / 2;
       generator.section = 0;
@@ -727,11 +1046,15 @@
     }
 
     function getPlayerBaseSpeed() {
-      return 300 * playerSpeedScale;
+      return 300 * getPlayerSpeedScale();
     }
 
     function getPlayerMaxSpeed() {
-      return 370 * playerSpeedScale;
+      return 370 * getPlayerSpeedScale();
+    }
+
+    function getPlayerSpeedScale() {
+      return playerSpeedScale * (autopilot.enabled ? autopilotSpeedScale : 1);
     }
 
     function resetAiOpponents() {
@@ -752,6 +1075,9 @@
     }
 
     function getStartGridProgress(slotIndex) {
+      if (selectedMap === "fixed") {
+        return fixedStartProgress - slotIndex * 56;
+      }
       return 188 - slotIndex * 44;
     }
 
@@ -772,6 +1098,215 @@
         tangent: point.tangent,
         normal: point.normal
       };
+    }
+
+    function buildFixedCircuitTrack() {
+      const points = fixedMapPoints.map(toFixedMapWorldPoint);
+      const corners = points.map((point, index) => getFixedCorner(points, index));
+
+      for (let step = 0; step < corners.length; step += 1) {
+        const i = (step + 1) % corners.length;
+        const previous = corners[(i - 1 + corners.length) % corners.length];
+        const current = corners[i];
+        appendFixedLine(previous.arcEnd, current.arcStart);
+
+        if (current.radius > 0 && current.turnAbs > 0.18) {
+          trackSegments.push({
+            type: "arc",
+            center: current.center,
+            radius: current.radius,
+            start: current.start,
+            end: current.end,
+            dir: current.dir,
+            turnAbs: current.turnAbs
+          });
+
+          if (current.turnAbs > 0.26) {
+            anchors.push({
+              x: current.center.x,
+              y: current.center.y,
+              r: current.radius,
+              turnAbs: current.turnAbs,
+              turnDir: current.dir,
+              fixedIndex: i,
+              trackX: current.midPoint.x,
+              trackY: current.midPoint.y
+            });
+          }
+        }
+      }
+
+      cachedWorldTrackPoints = null;
+      cachedTrackMetrics = null;
+      pruneFixedHairpinAnchors();
+      assignFixedAnchorProgress();
+      numberFixedAnchors();
+      fixedStartProgress = getFixedStartProgress();
+      addFixedMapBoostPads();
+    }
+
+    function toFixedMapWorldPoint(point) {
+      return {
+        x: (point.x - fixedMapOrigin.x) * fixedMapScale + fixedMapStart.x,
+        y: (point.y - fixedMapOrigin.y) * fixedMapScale + fixedMapStart.y
+      };
+    }
+
+    function getFixedStartProgress() {
+      const start = fixedMapPoints[0];
+      const next = fixedMapPoints[1];
+      const startGridPoint = toFixedMapWorldPoint({
+        x: start.x + (next.x - start.x) * 0.16,
+        y: start.y + (next.y - start.y) * 0.16
+      });
+      return getTrackProgressAtPoint(startGridPoint.x, startGridPoint.y);
+    }
+
+    function getFixedStartFinishProgress() {
+      return getStartGridProgress(0) + 76;
+    }
+
+    function getFixedRaceFinishProgress() {
+      const metrics = buildTrackMetrics();
+      return getFixedStartFinishProgress() + metrics.total;
+    }
+
+    function getFixedCorner(points, index) {
+      const previous = points[(index - 1 + points.length) % points.length];
+      const current = points[index];
+      const next = points[(index + 1) % points.length];
+      const inVector = normalizeVector(current.x - previous.x, current.y - previous.y);
+      const outVector = normalizeVector(next.x - current.x, next.y - current.y);
+      const turn = shortAngle(Math.atan2(outVector.y, outVector.x) - Math.atan2(inVector.y, inVector.x));
+      const turnAbs = Math.abs(turn);
+
+      if (turnAbs < 0.08) {
+        return {
+          arcStart: current,
+          arcEnd: current,
+          radius: 0,
+          turnAbs: 0
+        };
+      }
+
+      const inLength = Math.hypot(current.x - previous.x, current.y - previous.y);
+      const outLength = Math.hypot(next.x - current.x, next.y - current.y);
+      const maxTangent = Math.min(inLength, outLength) * (index === 31 ? 0.52 : 0.48);
+      const tangentFactor = Math.max(0.12, Math.tan(turnAbs / 2));
+      const maxRadius = index === 31 ? fixedMapCornerRadius * 1.28 : fixedMapCornerRadius;
+      const minRadius = index === 31 ? 180 : 140;
+      const radius = Math.max(minRadius, Math.min(maxRadius, maxTangent / tangentFactor));
+      const tangentDistance = radius * tangentFactor;
+      const arcStart = {
+        x: current.x - inVector.x * tangentDistance,
+        y: current.y - inVector.y * tangentDistance
+      };
+      const arcEnd = {
+        x: current.x + outVector.x * tangentDistance,
+        y: current.y + outVector.y * tangentDistance
+      };
+      const dir = turn > 0 ? 1 : -1;
+      const center = {
+        x: arcStart.x - inVector.y * radius * dir,
+        y: arcStart.y + inVector.x * radius * dir
+      };
+
+      return {
+        arcStart,
+        arcEnd,
+        center,
+        radius,
+        start: Math.atan2(arcStart.y - center.y, arcStart.x - center.x),
+        end: Math.atan2(arcEnd.y - center.y, arcEnd.x - center.x),
+        midPoint: getArcMidPoint(center, radius, Math.atan2(arcStart.y - center.y, arcStart.x - center.x), Math.atan2(arcEnd.y - center.y, arcEnd.x - center.x), dir),
+        dir,
+        turnAbs,
+      };
+    }
+
+    function getArcMidPoint(center, radius, start, end, dir) {
+      let total = end - start;
+      if (dir > 0 && total < 0) total += Math.PI * 2;
+      if (dir < 0 && total > 0) total -= Math.PI * 2;
+      const angle = start + total * 0.5;
+      return {
+        x: center.x + Math.cos(angle) * radius,
+        y: center.y + Math.sin(angle) * radius
+      };
+    }
+
+    function appendFixedLine(from, to) {
+      const length = Math.hypot(to.x - from.x, to.y - from.y);
+      if (length < 6) return;
+      trackSegments.push({ type: "line", from, to, long: length >= 520 });
+    }
+
+    function assignFixedAnchorProgress() {
+      anchors.forEach((anchor) => {
+        anchor.progress = getTrackProgressAtPoint(anchor.trackX, anchor.trackY);
+      });
+      anchors.sort((a, b) => a.progress - b.progress);
+    }
+
+    function numberFixedAnchors() {
+      anchors.forEach((anchor, index) => {
+        anchor.turnNumber = index + 1;
+      });
+    }
+
+    function pruneFixedHairpinAnchors() {
+      const hairpinThreshold = 120 * Math.PI / 180;
+      const minorTurnThreshold = 45 * Math.PI / 180;
+      const clusterDistance = road.width;
+      const keep = anchors.map(() => true);
+
+      anchors.forEach((mainAnchor, mainIndex) => {
+        if (mainAnchor.turnAbs < hairpinThreshold) return;
+
+        anchors.forEach((anchor, index) => {
+          if (index === mainIndex || anchor.turnAbs >= minorTurnThreshold) return;
+
+          const distance = Math.hypot(anchor.x - mainAnchor.x, anchor.y - mainAnchor.y);
+          const pointDelta = getFixedPointIndexDelta(anchor.fixedIndex, mainAnchor.fixedIndex);
+          if (distance <= clusterDistance && pointDelta <= 2) {
+            keep[index] = false;
+          }
+        });
+      });
+
+      anchors = anchors.filter((_, index) => keep[index]);
+    }
+
+    function getFixedPointIndexDelta(a, b) {
+      if (!Number.isFinite(a) || !Number.isFinite(b)) return Infinity;
+      const count = fixedMapPoints.length;
+      const delta = Math.abs(a - b);
+      return Math.min(delta, count - delta);
+    }
+
+    function addFixedMapBoostPads() {
+      for (const segment of trackSegments) {
+        if (segment.type !== "line" || !segment.long) continue;
+        const heading = Math.atan2(segment.to.y - segment.from.y, segment.to.x - segment.from.x);
+        const length = Math.hypot(segment.to.x - segment.from.x, segment.to.y - segment.from.y);
+        addFixedBoostPadsOnStraight(segment.from, segment.to, heading, length);
+      }
+    }
+
+    function addFixedBoostPadsOnStraight(from, to, heading, length) {
+      if (length < 520) return;
+
+      const count = Math.max(1, Math.min(4, Math.floor(length / 560)));
+      for (let i = 0; i < count; i += 1) {
+        const t = count === 1 ? 0.5 : 0.22 + (i / (count - 1)) * 0.56;
+        boostPads.push({
+          x: from.x + (to.x - from.x) * t,
+          y: from.y + (to.y - from.y) * t,
+          angle: heading,
+          used: false,
+          cooldown: 0
+        });
+      }
     }
 
     function generateNextTrackSection() {
@@ -889,7 +1424,14 @@
         dir: candidate.turnDir,
         turnAbs: candidate.turnAbs
       });
-      anchors.push({ x: candidate.center.x, y: candidate.center.y, r: candidate.radius });
+      anchors.push({
+        x: candidate.center.x,
+        y: candidate.center.y,
+        r: candidate.radius,
+        turnAbs: candidate.turnAbs,
+        turnDir: candidate.turnDir,
+        turnNumber: generator.section + 1
+      });
       generator.point = candidate.exit;
       generator.heading += candidate.turnDir * candidate.turnAbs;
 
@@ -935,22 +1477,25 @@
       const count = length > 760 ? 2 : 1;
       for (let i = 0; i < count; i += 1) {
         const t = count === 1 ? 0.48 : 0.36 + i * 0.22;
-        boostPads.push({
-          x: from.x + (to.x - from.x) * t,
-          y: from.y + (to.y - from.y) * t,
-          angle: heading,
-          used: false
-        });
+      boostPads.push({
+        x: from.x + (to.x - from.x) * t,
+        y: from.y + (to.y - from.y) * t,
+        angle: heading,
+        used: false,
+        cooldown: 0
+      });
       }
     }
 
     function ensureTrackAhead() {
+      if (selectedMap === "fixed") return;
       while (anchors.length - activeAnchorIndex < 5) {
         generateNextTrackSection();
       }
     }
 
     function ensureTrackToProgress(progress) {
+      if (selectedMap === "fixed") return;
       let metrics = buildTrackMetrics();
       while (metrics.total < progress) {
         generateNextTrackSection();
@@ -989,6 +1534,10 @@
 
     function getNearestAnchor() {
       syncActiveAnchorToCar();
+      if (selectedMap === "fixed") {
+        const reachableAnchor = getReachableFixedAnchor();
+        if (reachableAnchor) return reachableAnchor;
+      }
       const anchor = anchors[activeAnchorIndex];
       if (!anchor) return null;
 
@@ -997,6 +1546,49 @@
       const distance = Math.hypot(dx, dy);
       if (distance <= rope.maxReach) return anchor;
       return null;
+    }
+
+    function getReachableFixedAnchor() {
+      const metrics = buildTrackMetrics();
+      const progress = getTrackProgressAt(car.x, car.y);
+      const maxForwardDelta = Math.max(1400, rope.maxReach * 2.4);
+      const maxReconnectDelta = Math.max(620, rope.maxReach * 1.15);
+      let best = null;
+      let bestScore = Infinity;
+      let bestIndex = activeAnchorIndex;
+
+      anchors.forEach((anchor, index) => {
+        const forwardDelta = getFixedAnchorForwardDelta(anchor, progress, metrics.total);
+        const backwardDelta = getFixedAnchorBackwardDelta(anchor, progress, metrics.total);
+        const recentlyPassed = backwardDelta <= maxReconnectDelta;
+        if (forwardDelta > maxForwardDelta && !recentlyPassed) return;
+
+        const distance = Math.hypot(anchor.x - car.x, anchor.y - car.y);
+        if (distance > rope.maxReach) return;
+
+        const score = recentlyPassed
+          ? backwardDelta * 0.45 + distance * 0.16
+          : forwardDelta + distance * 0.08;
+
+        if (score < bestScore) {
+          best = anchor;
+          bestScore = score;
+          bestIndex = index;
+        }
+      });
+
+      if (best) activeAnchorIndex = bestIndex;
+      return best;
+    }
+
+    function getFixedAnchorForwardDelta(anchor, progress, trackTotal) {
+      if (!trackTotal) return Infinity;
+      return (anchor.progress - progress + trackTotal) % trackTotal;
+    }
+
+    function getFixedAnchorBackwardDelta(anchor, progress, trackTotal) {
+      if (!trackTotal) return Infinity;
+      return (progress - anchor.progress + trackTotal) % trackTotal;
     }
 
     function attachToAnchor(anchor) {
@@ -1041,26 +1633,31 @@
       updateDifficulty(dt);
       syncActiveAnchorToCar();
 
-      if (input.space && !car.attached) {
-        const anchor = getNearestAnchor();
-        if (anchor) attachToAnchor(anchor);
-      }
-
-      if (!input.space && car.attached) {
-        detachFromAnchor();
-      }
-
-      if (car.attached && car.anchor) {
-        applyRopePull(dt);
+      if (autopilot.enabled) {
+        input.space = false;
+        applyAutopilot(dt);
       } else {
-        applyStraightCentering(dt);
-      }
+        if (input.space && !car.attached) {
+          const anchor = getNearestAnchor();
+          if (anchor) attachToAnchor(anchor);
+        }
 
-      applyEngineAssist(dt);
+        if (!input.space && car.attached) {
+          detachFromAnchor();
+        }
+
+        if (car.attached && car.anchor) {
+          applyRopePull(dt);
+        } else {
+          applyStraightCentering(dt);
+        }
+
+        applyEngineAssist(dt);
+      }
 
       car.x += car.vx * dt;
       car.y += car.vy * dt;
-      applyBoostPads();
+      applyBoostPads(dt);
       car.vx *= car.attached ? 0.998 : 0.999;
       car.vy *= car.attached ? 0.998 : 0.999;
       car.speed = Math.hypot(car.vx, car.vy);
@@ -1078,6 +1675,7 @@
       car.detachedFlash = Math.max(0, car.detachedFlash - dt);
       car.slideTimer = Math.max(0, car.slideTimer - dt);
       car.boostTimer = Math.max(0, car.boostTimer - dt);
+      updatePracticeLapCounter();
       updateSkidMarks(dt);
       updateAiOpponents(dt);
       updateRaceState(dt);
@@ -1101,6 +1699,37 @@
       finishRespawn();
     }
 
+    function resetPracticeLapCounter() {
+      const progress = selectedMap === "fixed" ? getTrackProgressAt(car.x, car.y) : 0;
+      practiceLap.completed = 0;
+      practiceLap.lastProgress = progress;
+      practiceLap.totalProgress = progress;
+    }
+
+    function updatePracticeLapCounter() {
+      if (selectedMap !== "fixed") return;
+
+      const metrics = buildTrackMetrics();
+      if (!metrics.total) return;
+
+      const progress = getTrackProgressAt(car.x, car.y);
+      const crossedForward = practiceLap.lastProgress > metrics.total * 0.72 && progress < metrics.total * 0.28;
+      const crossedBackward = practiceLap.lastProgress < metrics.total * 0.18 && progress > metrics.total * 0.82;
+
+      if (crossedForward) {
+        practiceLap.completed += 1;
+      } else if (crossedBackward && practiceLap.completed > 0) {
+        practiceLap.completed -= 1;
+      }
+
+      practiceLap.lastProgress = progress;
+      practiceLap.totalProgress = practiceLap.completed * metrics.total + progress;
+    }
+
+    function getPlayerRaceProgress() {
+      return selectedMap === "fixed" ? practiceLap.totalProgress : getTrackProgressAt(car.x, car.y);
+    }
+
     function updateRaceState(dt) {
       if (currentMode !== "race" || race.finished) {
         updateRaceTimer();
@@ -1109,9 +1738,9 @@
       }
 
       race.elapsed += dt;
-      const playerProgress = getTrackProgressAt(car.x, car.y);
+      const playerProgress = getPlayerRaceProgress();
 
-      if (race.finishProgress === null && race.elapsed >= race.duration - race.finishLeadTime) {
+      if (selectedMap !== "fixed" && race.finishProgress === null && race.elapsed >= race.duration - race.finishLeadTime) {
         race.finishProgress = playerProgress + race.finishAheadDistance;
         ensureTrackToProgress(race.finishProgress + 900);
       }
@@ -1130,12 +1759,12 @@
     function updateRaceTimer() {
       const visible = gameStarted && currentMode === "race" && !gameOverEl.classList.contains("visible");
       raceTimerEl.classList.toggle("hidden", !visible);
-      const playerProgress = gameStarted ? getTrackProgressAt(car.x, car.y) : 0;
+      const playerProgress = gameStarted ? getPlayerRaceProgress() : 0;
       const remainingMeters = getRaceRemainingMeters(playerProgress);
       raceTimeEl.textContent = String(remainingMeters);
     }
 
-    function getRaceRemainingMeters(playerProgress = getTrackProgressAt(car.x, car.y)) {
+    function getRaceRemainingMeters(playerProgress = getPlayerRaceProgress()) {
       const estimatedFinish = race.finishProgress ?? playerProgress + race.finishAheadDistance + Math.max(0, race.duration - race.finishLeadTime - race.elapsed) * 310;
       return Math.max(0, Math.round((estimatedFinish - playerProgress) / 10));
     }
@@ -1154,7 +1783,7 @@
         if (remainingMeters <= milestone && !race.shownMilestones.has(milestone)) {
           race.shownMilestones.add(milestone);
           race.noticeTimer = 1.8;
-          raceNoticeEl.textContent = `${milestone}m remaining`;
+          raceNoticeEl.textContent = t("metersRemaining", { meters: milestone });
         }
       });
 
@@ -1164,25 +1793,27 @@
     function finishRace() {
       race.finished = true;
       gameStarted = false;
+      isPaused = false;
       car.attached = false;
       car.anchor = null;
       input.space = false;
       updateRaceTimer();
       updateRespawnBanner();
       updateRaceNotice(0);
+      updatePauseDisplay();
 
       const entries = getRankingEntries();
       const playerIndex = entries.findIndex((entry) => entry.player);
       const playerPosition = playerIndex + 1;
 
-      resultTitleEl.textContent = `P${playerPosition} Finish`;
+      resultTitleEl.textContent = `P${playerPosition} ${t("finish")}`;
       resultBodyEl.innerHTML = `
-        <div>You finished ${formatOrdinal(playerPosition)} in ${race.elapsed.toFixed(1)}s</div>
+        <div>${t("finished", { position: formatOrdinalText(playerPosition), time: race.elapsed.toFixed(1) })}</div>
         <div class="result-list">
           ${entries
             .map((entry, index) => {
               const gap = Math.max(0, (entries[0].progress - entry.progress) / 115);
-              const gapText = index === 0 ? "WINNER" : `+${gap.toFixed(1)}s`;
+              const gapText = index === 0 ? t("winner") : `+${gap.toFixed(1)}s`;
               const playerClass = entry.player ? " player" : "";
               return `<div class="result-row${playerClass}">
                 <span>P${index + 1}</span>
@@ -1198,7 +1829,7 @@
 
     function getRankingEntries() {
       return [
-        { id: "YOU", name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        { id: "YOU", name: t("you"), progress: getPlayerRaceProgress(), player: true },
         ...aiOpponents.map((opponent) => ({
           id: opponent.name,
           name: opponent.name,
@@ -1218,21 +1849,64 @@
     function updateDifficulty(dt) {
       car.runTime += dt;
       car.difficulty = Math.min(2.35, 1 + car.runTime / 75);
-      car.maxFreeSpeed = (370 + (car.difficulty - 1) * 190) * playerSpeedScale;
+      car.maxFreeSpeed = (370 + (car.difficulty - 1) * 190) * getPlayerSpeedScale();
     }
 
     function applyEngineAssist(dt) {
       const speed = Math.max(1, Math.hypot(car.vx, car.vy));
-      const targetSpeed = (car.boostTimer > 0 ? 455 : 300) * car.difficulty * playerSpeedScale;
-      const accel = (car.boostTimer > 0 ? 260 : 58) * playerSpeedScale;
+      const speedScale = getPlayerSpeedScale();
+      const targetSpeed = (car.boostTimer > 0 ? 455 : 300) * car.difficulty * speedScale;
+      const accel = (car.boostTimer > 0 ? 260 : 58) * speedScale;
       if (speed >= targetSpeed) return;
 
       car.vx += (car.vx / speed) * accel * dt;
       car.vy += (car.vy / speed) * accel * dt;
     }
 
+    function applyAutopilot(dt) {
+      if (car.attached) {
+        car.attached = false;
+        car.anchor = null;
+      }
+
+      const info = nearestTrackCenterInfo(car.x, car.y);
+      ensureTrackToProgress(info.progress + 1800);
+
+      const currentSpeed = Math.max(1, Math.hypot(car.vx, car.vy));
+      const targetSpeed = Math.min(car.maxFreeSpeed, (car.boostTimer > 0 ? 470 : 322) * car.difficulty * getPlayerSpeedScale());
+      const lookAhead = Math.max(210, Math.min(620, currentSpeed * 0.62));
+      const target = getTrackPointAtProgress(info.progress + lookAhead);
+      const toTargetX = target.x - car.x;
+      const toTargetY = target.y - car.y;
+      const toTargetLength = Math.max(1, Math.hypot(toTargetX, toTargetY));
+      let desiredX = toTargetX / toTargetLength + target.tangent.x * 0.42;
+      let desiredY = toTargetY / toTargetLength + target.tangent.y * 0.42;
+      const desiredLength = Math.max(1, Math.hypot(desiredX, desiredY));
+      desiredX /= desiredLength;
+      desiredY /= desiredLength;
+
+      const blend = Math.min(1, dt * 5.4);
+      car.vx += (desiredX * targetSpeed - car.vx) * blend;
+      car.vy += (desiredY * targetSpeed - car.vy) * blend;
+
+      const centerX = info.closest.x - car.x;
+      const centerY = info.closest.y - car.y;
+      car.vx += centerX * dt * 5.8;
+      car.vy += centerY * dt * 5.8;
+
+      if (info.distance > road.width * 0.32) {
+        const snap = Math.min(1, dt * 4.2);
+        car.x += centerX * snap;
+        car.y += centerY * snap;
+      }
+    }
+
     function syncActiveAnchorToCar() {
       if (car.attached) return;
+      if (selectedMap === "fixed") {
+        syncFixedActiveAnchorToCar();
+        return;
+      }
 
       while (activeAnchorIndex < anchors.length - 1) {
         const current = anchors[activeAnchorIndex];
@@ -1250,7 +1924,13 @@
     }
 
     function advanceActiveAnchor() {
-      if (car.attached || activeAnchorIndex >= anchors.length - 1) return;
+      if (car.attached) return;
+
+      if (selectedMap === "fixed") {
+        syncFixedActiveAnchorToCar();
+        return;
+      }
+      if (activeAnchorIndex >= anchors.length - 1) return;
 
       const current = anchors[activeAnchorIndex];
       const next = anchors[activeAnchorIndex + 1];
@@ -1261,6 +1941,34 @@
         activeAnchorIndex += 1;
         ensureTrackAhead();
       }
+    }
+
+    function syncFixedActiveAnchorToCar() {
+      if (!anchors.length) return;
+
+      const metrics = buildTrackMetrics();
+      const progress = getTrackProgressAt(car.x, car.y);
+      const maxReconnectDelta = Math.max(620, rope.maxReach * 1.15);
+      let bestIndex = 0;
+      let bestScore = Infinity;
+
+      anchors.forEach((anchor, index) => {
+        const forwardDelta = getFixedAnchorForwardDelta(anchor, progress, metrics.total);
+        const backwardDelta = getFixedAnchorBackwardDelta(anchor, progress, metrics.total);
+        const distance = Math.hypot(anchor.x - car.x, anchor.y - car.y);
+        const recentlyPassed = backwardDelta <= maxReconnectDelta && distance <= rope.maxReach;
+        let score = forwardDelta;
+
+        if (score < 50) score += metrics.total;
+        if (recentlyPassed) score = backwardDelta * 0.45 + distance * 0.16;
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+      });
+
+      activeAnchorIndex = bestIndex;
     }
 
     function applyRopePull(dt) {
@@ -1285,6 +1993,11 @@
     }
 
     function applyStraightCentering(dt) {
+      if (selectedMap === "fixed") {
+        applyFixedTrackCentering(dt);
+        return;
+      }
+
       const info = nearestLongStraightInfo(car.x, car.y);
       if (!info || info.distance > road.width * 0.42 || car.slideTimer > 0) return;
 
@@ -1293,6 +2006,28 @@
       const lateralVelocity = car.vx * info.normal.x + car.vy * info.normal.y;
       car.vx += (toCenterX * 3.2 - info.normal.x * lateralVelocity * 3.6) * dt;
       car.vy += (toCenterY * 3.2 - info.normal.y * lateralVelocity * 3.6) * dt;
+    }
+
+    function applyFixedTrackCentering(dt) {
+      const info = nearestTrackCenterInfo(car.x, car.y);
+      const centerRatio = info.distance / (road.width / 2);
+      if (car.slideTimer > 0 && centerRatio < 0.7) return;
+      if (centerRatio < 0.24) return;
+
+      const toCenterX = info.closest.x - car.x;
+      const toCenterY = info.closest.y - car.y;
+      const lateralVelocity = car.vx * info.normal.x + car.vy * info.normal.y;
+      const assist = centerRatio > 0.68 ? 3.8 : 2.2;
+      const damping = centerRatio > 0.68 ? 3.6 : 2.4;
+
+      car.vx += (toCenterX * assist - info.normal.x * lateralVelocity * damping) * dt;
+      car.vy += (toCenterY * assist - info.normal.y * lateralVelocity * damping) * dt;
+
+      if (centerRatio > 0.9) {
+        const snap = Math.min(0.08, dt * 0.45);
+        car.x += toCenterX * snap;
+        car.y += toCenterY * snap;
+      }
     }
 
     function nearestLongStraightInfo(x, y) {
@@ -1311,9 +2046,12 @@
       return best;
     }
 
-    function applyBoostPads() {
+    function applyBoostPads(dt) {
       for (const pad of boostPads) {
-        if (pad.used || Math.abs(pad.y - car.y) > 900 || Math.abs(pad.x - car.x) > 900) continue;
+        pad.cooldown = Math.max(0, (pad.cooldown || 0) - dt);
+        pad.used = pad.cooldown > 0;
+        if (pad.cooldown > 0 || Math.abs(pad.y - car.y) > 900 || Math.abs(pad.x - car.x) > 900) continue;
+
         const dx = car.x - pad.x;
         const dy = car.y - pad.y;
         const forwardX = Math.cos(pad.angle);
@@ -1325,6 +2063,7 @@
 
         if (Math.abs(along) < 54 && Math.abs(lateral) < road.width * 0.3) {
           pad.used = true;
+          pad.cooldown = 1.15;
           car.boostTimer = 1.05;
           const currentSpeed = Math.max(1, Math.hypot(car.vx, car.vy));
           const boostSpeed = Math.min(car.maxFreeSpeed * 1.12, Math.max(470, currentSpeed * 1.22));
@@ -1338,7 +2077,7 @@
       const playerProgress = getTrackProgressAt(car.x, car.y);
 
       for (const opponent of aiOpponents) {
-        while (opponent.progress > buildTrackMetrics().total - 1200) {
+        while (selectedMap !== "fixed" && opponent.progress > buildTrackMetrics().total - 1200) {
           generateNextTrackSection();
         }
 
@@ -1378,7 +2117,7 @@
 
     function updateLeaderboardPanel() {
       const entries = [
-        { id: "YOU", name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        { id: "YOU", name: t("you"), progress: getTrackProgressAt(car.x, car.y), player: true },
         ...aiOpponents.map((opponent) => ({
           id: opponent.name,
           name: opponent.name,
@@ -1400,7 +2139,7 @@
         }
       });
 
-      leaderboardEl.innerHTML = `<strong>Rank</strong>${entries
+      leaderboardEl.innerHTML = `<strong>${t("rank")}</strong>${entries
         .map((entry, index) => {
           const position = index + 1;
           const effect = rankChangeEffects.get(entry.id);
@@ -1425,7 +2164,7 @@
 
     function updateLeaderboardPanelF1() {
       const entries = [
-        { id: "YOU", name: "YOU", progress: getTrackProgressAt(car.x, car.y), player: true },
+        { id: "YOU", name: t("you"), progress: getPlayerRaceProgress(), player: true },
         ...aiOpponents.map((opponent) => ({
           id: opponent.name,
           name: opponent.name,
@@ -1448,7 +2187,11 @@
         }
       });
 
-      leaderboardEl.innerHTML = `<strong>Rank</strong>${entries
+      const headerHtml = currentMode === "endless" && selectedMap === "fixed"
+        ? `<div class="rank-header"><span>${t("rank")}</span><span class="lap-counter">${t("lap")} ${practiceLap.completed + 1}</span></div>`
+        : `<strong>${t("rank")}</strong>`;
+
+      leaderboardEl.innerHTML = `${headerHtml}${entries
         .map((entry, index) => {
           const position = index + 1;
           const effect = rankChangeEffects.get(entry.id);
@@ -1457,7 +2200,7 @@
           const playerClass = entry.player ? " player" : "";
           const changeText = delta > 0 ? `UP +${delta}` : delta < 0 ? `DN ${delta}` : "-";
           const gapSeconds = Math.max(0, (leaderProgress - entry.progress) / 115);
-          const gapText = index === 0 ? "INTERVAL" : `+${gapSeconds.toFixed(1)}s`;
+          const gapText = index === 0 ? t("interval") : `+${gapSeconds.toFixed(1)}s`;
           const gapClass = index === 0 ? "rank-gap leader" : "rank-gap";
 
           return `<div class="rank-row ${movementClass}${playerClass}">
@@ -1475,9 +2218,103 @@
       });
     }
 
+    function t(key, replacements = {}) {
+      const value = translations[selectedLanguage][key] ?? translations.en[key] ?? key;
+      return Object.entries(replacements).reduce((text, [name, replacement]) => {
+        return text.replace(`{${name}}`, replacement);
+      }, value);
+    }
+
+    function formatOrdinalText(position) {
+      if (selectedLanguage === "zh") return String(position);
+      return formatOrdinal(position);
+    }
+
+    function setLanguage(language) {
+      selectedLanguage = language === "en" ? "en" : "zh";
+      applyLanguage();
+    }
+
+    function applyLanguage() {
+      menuTitleEl.textContent = t("menuTitle");
+      menuSubtitleEl.textContent = t("menuSubtitle");
+      difficultyLabelEl.textContent = t("difficulty");
+      trackLabelEl.textContent = t("track");
+      startButtonEl.textContent = t("practiceMode");
+      raceButtonEl.textContent = t("raceMode");
+      settingsButtonEl.textContent = t("settings");
+      restartButtonEl.textContent = t("restart");
+      homeButtonEl.textContent = t("home");
+      settingsTitleEl.textContent = t("settings");
+      settingsSectionLabelEl.textContent = t("settings");
+      playerSpeedLabelEl.textContent = t("playerSpeed");
+      languageLabelEl.textContent = t("language");
+      backToMainButtonEl.textContent = t("back");
+      respawnLabelEl.textContent = t("respawning");
+      raceTimerLabelEl.textContent = t("remaining");
+      autopilotLabelEl.textContent = t("autoDrive");
+      autopilotSpeedLabelEl.textContent = t("testSpeed");
+
+      document.querySelector("[data-difficulty='easy']").textContent = t("easy");
+      document.querySelector("[data-difficulty='normal']").textContent = t("normal");
+      document.querySelector("[data-difficulty='hard']").textContent = t("hard");
+      document.querySelector("[data-map='infinite']").textContent = t("infiniteTrack");
+      document.querySelector("[data-map='fixed']").textContent = t("fixedCircuit");
+      document.querySelectorAll("[data-language]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.language === selectedLanguage);
+      });
+
+      updateRaceTimer();
+      updateRaceNotice(0);
+      if (trackSegments.length) updateLeaderboardPanelF1();
+      updateAutopilotDisplay();
+      updatePauseDisplay();
+    }
+
     function updatePlayerSpeedDisplay() {
       playerSpeedScale = Number(playerSpeedEl.value);
       playerSpeedValueEl.textContent = `${Math.round(playerSpeedScale * 100)}%`;
+    }
+
+    function updateAutopilotDisplay() {
+      autopilotSpeedScale = Number(autopilotSpeedEl.value);
+      autopilotSpeedValueEl.textContent = `${Math.round(autopilotSpeedScale * 100)}%`;
+      autopilotButtonEl.textContent = autopilot.enabled ? t("on") : t("off");
+      autopilotButtonEl.classList.toggle("active", autopilot.enabled);
+
+      const visible = gameStarted && !gameOverEl.classList.contains("visible") && !race.finished;
+      autopilotPanelEl.classList.toggle("hidden", !visible);
+    }
+
+    function getPauseLabel() {
+      return selectedLanguage === "zh" ? "\u6682\u505c" : "Pause";
+    }
+
+    function getResumeLabel() {
+      return selectedLanguage === "zh" ? "\u7ee7\u7eed" : "Resume";
+    }
+
+    function getPausedLabel() {
+      return selectedLanguage === "zh" ? "\u5df2\u6682\u505c" : "Paused";
+    }
+
+    function setPaused(paused) {
+      isPaused = Boolean(paused) && gameStarted && !gameOverEl.classList.contains("visible") && !race.finished;
+      if (isPaused) input.space = false;
+      updatePauseDisplay();
+    }
+
+    function togglePause() {
+      setPaused(!isPaused);
+    }
+
+    function updatePauseDisplay() {
+      const visible = gameStarted && !gameOverEl.classList.contains("visible") && !race.finished;
+      pauseButtonEl.classList.toggle("hidden", !visible);
+      pauseButtonEl.classList.toggle("active", isPaused);
+      pauseButtonEl.textContent = isPaused ? getResumeLabel() : getPauseLabel();
+      pauseBannerEl.classList.toggle("visible", visible && isPaused);
+      pauseBannerEl.textContent = getPausedLabel();
     }
 
     function updateSpeedometer() {
@@ -1487,6 +2324,8 @@
       const targetSpeed = Math.max(0, car.speed * 0.38);
       displayedSpeed += (targetSpeed - displayedSpeed) * 0.08;
       speedValueEl.textContent = String(Math.round(displayedSpeed));
+      updateAutopilotDisplay();
+      updatePauseDisplay();
     }
 
     function selectDifficulty(difficulty) {
@@ -1496,6 +2335,13 @@
 
       document.querySelectorAll("[data-difficulty]").forEach((button) => {
         button.classList.toggle("active", button.dataset.difficulty === selectedDifficulty);
+      });
+    }
+
+    function selectMap(map) {
+      selectedMap = map;
+      document.querySelectorAll("[data-map]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.map === selectedMap);
       });
     }
 
@@ -1513,13 +2359,17 @@
 
     function startGame(mode = "endless") {
       currentMode = mode;
+      isPaused = false;
       updatePlayerSpeedDisplay();
+      updateAutopilotDisplay();
       selectDifficulty(selectedDifficulty);
       reset();
       gameStarted = true;
       startScreenEl.classList.add("hidden");
       input.space = false;
       lastTime = performance.now();
+      updateAutopilotDisplay();
+      updatePauseDisplay();
     }
 
     function startRespawnPenalty() {
@@ -1536,8 +2386,8 @@
       car.slideTimer = 0;
       input.space = false;
       gameOverEl.classList.remove("visible");
-      resultTitleEl.textContent = "Crashed";
-      resultBodyEl.textContent = "You hit the track edge.";
+      resultTitleEl.textContent = t("crashed");
+      resultBodyEl.textContent = t("crashBody");
       updateRespawnBanner();
     }
 
@@ -1560,6 +2410,10 @@
       car.respawnTimer = 0;
       car.respawnTarget = null;
       input.space = false;
+      if (selectedMap === "fixed") {
+        practiceLap.lastProgress = getTrackProgressAt(car.x, car.y);
+        practiceLap.totalProgress = practiceLap.completed * buildTrackMetrics().total + practiceLap.lastProgress;
+      }
       syncActiveAnchorToCar();
       updateRespawnBanner();
     }
@@ -1581,10 +2435,13 @@
 
     function returnHome() {
       gameStarted = false;
+      isPaused = false;
       input.space = false;
       gameOverEl.classList.remove("visible");
       updateRespawnBanner();
       updateRaceTimer();
+      updateAutopilotDisplay();
+      updatePauseDisplay();
       reset();
       showMainMenu();
     }
@@ -1597,6 +2454,7 @@
       ctx.clearRect(0, 0, width, height);
       drawGrass(width, height);
       drawTrack();
+      drawStartFinishLine();
       drawStartGrid();
       drawFinishLine();
       drawBoostPads();
@@ -1605,7 +2463,9 @@
       drawRope();
       drawAiOpponents();
       drawCar();
+      drawTurnHint();
       drawTrackPreview();
+      drawFullMap();
     }
 
     function drawGrass(width, height) {
@@ -1646,8 +2506,8 @@
       ctx.lineWidth = scaled(4);
       drawOffsetPolyline(points, scaled(-road.width / 2 + 10));
       drawOffsetPolyline(points, scaled(road.width / 2 - 10));
-    }
 
+    }
     function drawTrackPreview() {
       const visible = gameStarted && !gameOverEl.classList.contains("visible");
       trackPreviewEl.classList.toggle("hidden", !visible);
@@ -1724,6 +2584,91 @@
       previewCtx.restore();
     }
 
+    function drawFullMap() {
+      const visible = gameStarted && selectedMap === "fixed" && !gameOverEl.classList.contains("visible");
+      fullMapEl.classList.toggle("hidden", !visible);
+      if (!visible) return;
+
+      const cssWidth = 300;
+      const cssHeight = 178;
+      const dpr = window.devicePixelRatio || 1;
+      const pixelWidth = Math.floor(cssWidth * dpr);
+      const pixelHeight = Math.floor(cssHeight * dpr);
+      if (fullMapEl.width !== pixelWidth || fullMapEl.height !== pixelHeight) {
+        fullMapEl.width = pixelWidth;
+        fullMapEl.height = pixelHeight;
+      }
+
+      fullMapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      fullMapCtx.clearRect(0, 0, cssWidth, cssHeight);
+
+      const points = buildWorldTrackPoints();
+      if (points.length < 2) return;
+
+      const bounds = getPointBounds(points);
+      const padding = 10;
+      const mapScale = Math.min(
+        (cssWidth - padding * 2) / Math.max(1, bounds.maxX - bounds.minX),
+        (cssHeight - padding * 2) / Math.max(1, bounds.maxY - bounds.minY)
+      );
+      const offsetX = (cssWidth - (bounds.maxX - bounds.minX) * mapScale) / 2;
+      const offsetY = (cssHeight - (bounds.maxY - bounds.minY) * mapScale) / 2;
+      const mapPoint = (point) => ({
+        x: offsetX + (point.x - bounds.minX) * mapScale,
+        y: offsetY + (point.y - bounds.minY) * mapScale
+      });
+
+      fullMapCtx.save();
+      fullMapCtx.lineCap = "round";
+      fullMapCtx.lineJoin = "round";
+      fullMapCtx.strokeStyle = "rgba(245, 248, 248, 0.52)";
+      fullMapCtx.lineWidth = selectedMap === "fixed" ? 8 : 6;
+      fullMapCtx.beginPath();
+      points.forEach((point, index) => {
+        const mapped = mapPoint(point);
+        if (index === 0) fullMapCtx.moveTo(mapped.x, mapped.y);
+        else fullMapCtx.lineTo(mapped.x, mapped.y);
+      });
+      fullMapCtx.stroke();
+
+      fullMapCtx.strokeStyle = "rgba(28, 37, 42, 0.72)";
+      fullMapCtx.lineWidth = selectedMap === "fixed" ? 5 : 4;
+      fullMapCtx.stroke();
+
+      drawFullMapDot(mapPoint({ x: car.x, y: car.y }), "#f2c12f", 4.8);
+      aiOpponents.forEach((opponent) => {
+        drawFullMapDot(mapPoint({ x: opponent.x, y: opponent.y }), opponent.color, 3.8);
+      });
+      fullMapCtx.restore();
+    }
+
+    function getPointBounds(points) {
+      return points.reduce((bounds, point) => ({
+        minX: Math.min(bounds.minX, point.x),
+        minY: Math.min(bounds.minY, point.y),
+        maxX: Math.max(bounds.maxX, point.x),
+        maxY: Math.max(bounds.maxY, point.y)
+      }), {
+        minX: Infinity,
+        minY: Infinity,
+        maxX: -Infinity,
+        maxY: -Infinity
+      });
+    }
+
+    function drawFullMapDot(point, color, radius) {
+      fullMapCtx.save();
+      fullMapCtx.globalAlpha = 0.86;
+      fullMapCtx.fillStyle = color;
+      fullMapCtx.strokeStyle = "#11181b";
+      fullMapCtx.lineWidth = 2;
+      fullMapCtx.beginPath();
+      fullMapCtx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+      fullMapCtx.fill();
+      fullMapCtx.stroke();
+      fullMapCtx.restore();
+    }
+
     function drawStartGrid() {
       for (let i = 0; i < 5; i += 1) {
         const slot = getStartGridSlot(i);
@@ -1743,10 +2688,19 @@
       }
     }
 
+    function drawStartFinishLine() {
+      if (selectedMap !== "fixed") return;
+      drawCheckeredLineAtProgress(getFixedStartFinishProgress(), "#ffd84d");
+    }
+
     function drawFinishLine() {
       if (currentMode !== "race" || race.finishProgress === null) return;
+      if (selectedMap === "fixed") return;
+      drawCheckeredLineAtProgress(race.finishProgress, "#ffd84d");
+    }
 
-      const point = getTrackPointAtProgress(race.finishProgress);
+    function drawCheckeredLineAtProgress(progress, accentColor) {
+      const point = getTrackPointAtProgress(progress);
       const p = worldToScreen(point.x, point.y);
       if (p.x < -220 || p.x > window.innerWidth + 220 || p.y < -220 || p.y > window.innerHeight + 220) return;
 
@@ -1773,7 +2727,7 @@
         }
       }
 
-      ctx.strokeStyle = "#ffd84d";
+      ctx.strokeStyle = accentColor;
       ctx.lineWidth = 4;
       ctx.strokeRect(-depth / 2, -width / 2, depth, width);
       ctx.restore();
@@ -1845,14 +2799,16 @@
 
     function getTrackPointAtProgress(progress) {
       let metrics = buildTrackMetrics();
-      while (progress > metrics.total - 1200) {
+      while (selectedMap !== "fixed" && progress > metrics.total - 1200) {
         generateNextTrackSection();
         metrics = buildTrackMetrics();
       }
 
       const points = metrics.points;
       const cumulative = metrics.cumulative;
-      const target = Math.max(0, Math.min(progress, metrics.total));
+      const target = selectedMap === "fixed"
+        ? ((progress % metrics.total) + metrics.total) % metrics.total
+        : Math.max(0, Math.min(progress, metrics.total));
       let low = 0;
       let high = cumulative.length - 1;
 
@@ -1952,6 +2908,10 @@
     }
 
     function getTrackProgressAt(x, y) {
+      return getTrackProgressAtPoint(x, y);
+    }
+
+    function getTrackProgressAtPoint(x, y) {
       const metrics = buildTrackMetrics();
       const points = metrics.points;
       let bestDistance = Infinity;
@@ -2018,8 +2978,9 @@
       const worldPoints = buildWorldTrackPoints();
       const edgeOffset = road.width / 2 - 14;
       const curbWidth = 18;
-      const leftCurb = buildOffsetTrackPoints(worldPoints, edgeOffset);
-      const rightCurb = buildOffsetTrackPoints(worldPoints, -edgeOffset);
+      const closed = selectedMap === "fixed";
+      const leftCurb = buildOffsetTrackPoints(worldPoints, edgeOffset, closed);
+      const rightCurb = buildOffsetTrackPoints(worldPoints, -edgeOffset, closed);
 
       ctx.save();
       ctx.lineCap = "round";
@@ -2027,30 +2988,42 @@
       ctx.lineWidth = scaled(curbWidth);
 
       ctx.strokeStyle = "#f5f0e8";
-      drawWorldPolyline(leftCurb);
-      drawWorldPolyline(rightCurb);
+      drawWorldPolyline(leftCurb, closed);
+      drawWorldPolyline(rightCurb, closed);
 
       ctx.lineCap = "square";
-      drawStripedCurb(leftCurb);
-      drawStripedCurb(rightCurb);
+      drawStripedCurb(leftCurb, closed);
+      drawStripedCurb(rightCurb, closed);
 
       ctx.restore();
     }
 
-    function drawWorldPolyline(points) {
+    function drawWorldPolyline(points, closed = false) {
+      const maxSegmentLength = closed ? road.width * 0.95 : Infinity;
       ctx.beginPath();
+      let drawing = false;
       points.forEach((point, index) => {
         const screen = worldToScreen(point.x, point.y);
-        if (index === 0) ctx.moveTo(screen.x, screen.y);
-        else ctx.lineTo(screen.x, screen.y);
+        const previous = points[index - 1];
+        const tooLong =
+          previous &&
+          Math.hypot(point.x - previous.x, point.y - previous.y) > maxSegmentLength;
+
+        if (index === 0 || tooLong || !drawing) {
+          ctx.moveTo(screen.x, screen.y);
+          drawing = true;
+        } else {
+          ctx.lineTo(screen.x, screen.y);
+        }
       });
       ctx.stroke();
     }
 
-    function buildOffsetTrackPoints(points, offset) {
+    function buildOffsetTrackPoints(points, offset, closed = false) {
+      const count = points.length;
       return points.map((point, index) => {
-        const prev = points[Math.max(0, index - 1)];
-        const next = points[Math.min(points.length - 1, index + 1)];
+        const prev = closed ? points[(index - 1 + count) % count] : points[Math.max(0, index - 1)];
+        const next = closed ? points[(index + 1) % count] : points[Math.min(count - 1, index + 1)];
         const angle = Math.atan2(next.y - prev.y, next.x - prev.x) + Math.PI / 2;
         return {
           x: point.x + Math.cos(angle) * offset,
@@ -2059,8 +3032,9 @@
       });
     }
 
-    function drawStripedCurb(points) {
+    function drawStripedCurb(points, closed = false) {
       const stripeLength = 38;
+      const maxSegmentLength = closed ? road.width * 0.95 : Infinity;
       let traveled = 0;
 
       for (let i = 0; i < points.length - 1; i += 1) {
@@ -2069,7 +3043,10 @@
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const length = Math.hypot(dx, dy);
-        if (length < 1) continue;
+        if (length < 1 || length > maxSegmentLength) {
+          traveled = 0;
+          continue;
+        }
 
         const tangentX = dx / length;
         const tangentY = dy / length;
@@ -2121,7 +3098,7 @@
     }
 
     function drawAnchors() {
-      const anchor = anchors[activeAnchorIndex];
+      const anchor = car.attached && car.anchor ? car.anchor : anchors[activeAnchorIndex];
       if (!anchor || car.crashed) return;
 
       const p = worldToScreen(anchor.x, anchor.y);
@@ -2156,6 +3133,186 @@
       ctx.arc(p.x - radius * 0.28, p.y - radius * 0.28, Math.max(3, radius * 0.28), 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
+    }
+
+    function drawTurnHint() {
+      const hint = getTurnHintInfo();
+      if (!hint) return;
+
+      const width = window.innerWidth;
+      const pulse = (Math.sin(performance.now() * 0.01) + 1) * 0.5;
+      const x = width / 2;
+      const y = 38;
+      const panelWidth = Math.min(390, width - 32);
+      const panelHeight = 64;
+      const alpha = hint.distance <= rope.maxReach ? 0.94 : 0.66 + pulse * 0.18;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "rgba(15, 20, 24, 0.82)";
+      ctx.strokeStyle = hint.distance <= rope.maxReach ? "#ffd84d" : "rgba(255, 216, 77, 0.72)";
+      ctx.lineWidth = 3;
+      roundRect(x - panelWidth / 2, y, panelWidth, panelHeight, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      const side = hint.side >= 0 ? 1 : -1;
+      const arrowX = x - panelWidth / 2 + 52;
+      const arrowY = y + panelHeight / 2;
+
+      if (selectedMap === "fixed") drawTurnHintTrackIcon(hint, arrowX, arrowY);
+      else drawTurnHintArrowIcon(side, arrowX, arrowY);
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 24px Arial, sans-serif";
+      ctx.fillText(hint.direction, x - panelWidth / 2 + 96, y + 26);
+      ctx.fillStyle = "#ffd84d";
+      ctx.font = "900 34px Arial, sans-serif";
+      ctx.fillText(String(hint.degrees), x - panelWidth / 2 + 212, y + 31);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+      ctx.font = "900 15px Arial, sans-serif";
+      ctx.fillText("°", x - panelWidth / 2 + 276, y + 30);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+      ctx.font = "800 12px Arial, sans-serif";
+      ctx.fillText(hint.detail, x - panelWidth / 2 + 98, y + 48);
+
+      const badgeX = x + panelWidth / 2 - 38;
+      const badgeY = y + panelHeight / 2;
+      ctx.fillStyle = "#ffd84d";
+      ctx.beginPath();
+      ctx.arc(badgeX, badgeY, 19, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#1c252a";
+      ctx.font = "900 18px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(String(hint.turnNumber), badgeX, badgeY + 1);
+      ctx.restore();
+    }
+
+    function getTurnHintInfo() {
+      if (!gameStarted || car.crashed || gameOverEl.classList.contains("visible")) return null;
+
+      const anchor = car.attached && car.anchor ? car.anchor : anchors[activeAnchorIndex];
+      if (!anchor) return null;
+
+      const dx = anchor.x - car.x;
+      const dy = anchor.y - car.y;
+      const distance = Math.hypot(dx, dy);
+      const anchorScreen = worldToScreen(anchor.x, anchor.y);
+      const margin = 54;
+      const anchorOnScreen =
+        anchorScreen.x >= margin &&
+        anchorScreen.x <= window.innerWidth - margin &&
+        anchorScreen.y >= margin &&
+        anchorScreen.y <= window.innerHeight - margin;
+      const hintRange = car.attached ? rope.maxReach * 1.45 : rope.maxReach * 2.05;
+
+      if (anchorOnScreen && distance > hintRange) return null;
+      if (!anchorOnScreen && distance > rope.maxReach * 2.8) return null;
+
+      const turnAbs = anchor.turnAbs || Math.PI / 2;
+      const vx = Math.abs(car.vx) + Math.abs(car.vy) > 12 ? car.vx : Math.cos(car.angle);
+      const vy = Math.abs(car.vx) + Math.abs(car.vy) > 12 ? car.vy : Math.sin(car.angle);
+      const side = vx * dy - vy * dx;
+      const turnDegrees = Math.round(turnAbs * 180 / Math.PI);
+      const turnName = getTurnHintName(turnDegrees);
+      const direction = side >= 0 ? t("right") : t("left");
+
+      return {
+        anchor,
+        anchorScreen,
+        distance,
+        anchorOnScreen,
+        side,
+        direction,
+        degrees: turnDegrees,
+        progress: anchor.progress ?? getTrackProgressAtPoint(anchor.x, anchor.y),
+        turnNumber: anchor.turnNumber || activeAnchorIndex + 1,
+        detail: turnName
+      };
+    }
+
+    function drawTurnHintArrowIcon(side, x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(side, 1);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#ffd84d";
+      ctx.fillStyle = "#ffd84d";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(-24, 14);
+      ctx.quadraticCurveTo(-25, -18, 13, -18);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(13, -18);
+      ctx.lineTo(1, -30);
+      ctx.lineTo(31, -18);
+      ctx.lineTo(1, -6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawTurnHintTrackIcon(hint, x, y) {
+      const points = getTurnPreviewPoints(hint.progress, 460);
+      if (points.length < 2) {
+        drawTurnHintArrowIcon(hint.side >= 0 ? 1 : -1, x, y);
+        return;
+      }
+
+      const bounds = getPointBounds(points);
+      const scale = Math.min(58 / Math.max(1, bounds.maxX - bounds.minX), 42 / Math.max(1, bounds.maxY - bounds.minY));
+      const centerX = (bounds.minX + bounds.maxX) / 2;
+      const centerY = (bounds.minY + bounds.maxY) / 2;
+
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(245, 248, 248, 0.74)";
+      ctx.lineWidth = 20;
+      drawTurnPreviewPath(points, x, y, centerX, centerY, scale);
+      ctx.strokeStyle = "#3a444a";
+      ctx.lineWidth = 14;
+      drawTurnPreviewPath(points, x, y, centerX, centerY, scale);
+      ctx.strokeStyle = "#ffd84d";
+      ctx.lineWidth = 4;
+      drawTurnPreviewPath(points, x, y, centerX, centerY, scale);
+      ctx.restore();
+    }
+
+    function drawTurnPreviewPath(points, x, y, centerX, centerY, scale) {
+      ctx.beginPath();
+      points.forEach((point, index) => {
+        const px = x + (point.x - centerX) * scale;
+        const py = y + (point.y - centerY) * scale;
+        if (index === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+
+    function getTurnPreviewPoints(progress, span) {
+      const metrics = buildTrackMetrics();
+      if (!metrics.total) return [];
+
+      const points = [];
+      const steps = 24;
+      const start = progress - span * 0.46;
+      for (let i = 0; i <= steps; i += 1) {
+        points.push(getTrackPointAtProgress(start + (span * i) / steps));
+      }
+      return points;
+    }
+
+    function getTurnHintName(degrees) {
+      if (degrees >= 120) return t("hairpinTurn");
+      if (degrees >= 105) return t("sharpTurn");
+      if (degrees >= 70) return t("mediumTurn");
+      return t("softTurn");
     }
 
     function drawBoostPads() {
@@ -2361,10 +3518,22 @@
       return ((angle % full) + full) % full;
     }
 
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function normalizeVector(x, y) {
+      const length = Math.hypot(x, y) || 1;
+      return {
+        x: x / length,
+        y: y / length
+      };
+    }
+
     function loop(now) {
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
-      if (gameStarted) update(dt);
+      if (gameStarted && !isPaused) update(dt);
       draw();
       updateSpeedometer();
       requestAnimationFrame(loop);
@@ -2373,11 +3542,16 @@
     window.addEventListener("keydown", (event) => {
       if (event.code === "Space") {
         event.preventDefault();
+        if (isPaused) return;
         input.space = true;
       }
       if (event.code === "KeyR") {
         if (gameOverEl.classList.contains("visible")) restartRace();
         else reset();
+      }
+      if (event.code === "KeyP") {
+        event.preventDefault();
+        togglePause();
       }
     });
 
@@ -2388,6 +3562,20 @@
     });
 
     playerSpeedEl.addEventListener("input", updatePlayerSpeedDisplay);
+    autopilotSpeedEl.addEventListener("input", updateAutopilotDisplay);
+    pauseButtonEl.addEventListener("click", (event) => {
+      event.preventDefault();
+      togglePause();
+    });
+    autopilotButtonEl.addEventListener("click", () => {
+      autopilot.enabled = !autopilot.enabled;
+      input.space = false;
+      if (car.attached) {
+        car.attached = false;
+        car.anchor = null;
+      }
+      updateAutopilotDisplay();
+    });
     startButtonEl.addEventListener("click", () => startGame("endless"));
     raceButtonEl.addEventListener("click", () => startGame("race"));
     settingsButtonEl.addEventListener("click", showSettingsMenu);
@@ -2397,23 +3585,34 @@
     document.querySelectorAll("[data-difficulty]").forEach((button) => {
       button.addEventListener("click", () => selectDifficulty(button.dataset.difficulty));
     });
+    document.querySelectorAll("[data-map]").forEach((button) => {
+      button.addEventListener("click", () => selectMap(button.dataset.map));
+    });
+    document.querySelectorAll("[data-language]").forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.language));
+    });
 
     window.addEventListener("pageshow", () => {
       selectDifficulty(selectedDifficulty);
+      selectMap(selectedMap);
+      applyLanguage();
       updatePlayerSpeedDisplay();
+      updateAutopilotDisplay();
     });
 
     function isUiControl(target) {
-      return target instanceof Element && (target.closest(".start-screen") || target.closest(".game-over"));
+      return target instanceof Element && (target.closest(".start-screen") || target.closest(".game-over") || target.closest(".autopilot-panel") || target.closest(".pause-button"));
     }
 
     window.addEventListener("pointerdown", (event) => {
       if (isUiControl(event.target)) return;
+      if (isPaused) return;
       input.space = true;
     });
 
     window.addEventListener("pointerup", (event) => {
       if (isUiControl(event.target)) return;
+      if (isPaused) return;
       input.space = false;
     });
 
@@ -2422,8 +3621,11 @@
     });
 
     selectDifficulty("normal");
+    selectMap("infinite");
     updatePlayerSpeedDisplay();
+    updateAutopilotDisplay();
     reset();
+    applyLanguage();
     requestAnimationFrame(loop);
   </script>
 </body>
