@@ -943,6 +943,11 @@
           <span id="playerSpeedValue">100%</span>
         </div>
         <input class="menu-slider" id="playerSpeed" type="range" min="0.8" max="1.3" step="0.05" value="1" />
+        <div class="setting-row">
+          <span id="centeringStrengthLabel">回正强度</span>
+          <span id="centeringStrengthValue">100%</span>
+        </div>
+        <input class="menu-slider" id="centeringStrength" type="range" min="0.4" max="1.6" step="0.05" value="1" />
       </div>
 
       <div class="menu-section">
@@ -1054,6 +1059,7 @@
     const settingsTitleEl = document.getElementById("settingsTitle");
     const settingsSectionLabelEl = document.getElementById("settingsSectionLabel");
     const playerSpeedLabelEl = document.getElementById("playerSpeedLabel");
+    const centeringStrengthLabelEl = document.getElementById("centeringStrengthLabel");
     const aiSpeedSettingsLabelEl = document.getElementById("aiSpeedSettingsLabel");
     const easyAiSpeedLabelEl = document.getElementById("easyAiSpeedLabel");
     const normalAiSpeedLabelEl = document.getElementById("normalAiSpeedLabel");
@@ -1066,6 +1072,8 @@
     const resultBodyEl = document.getElementById("resultBody");
     const playerSpeedEl = document.getElementById("playerSpeed");
     const playerSpeedValueEl = document.getElementById("playerSpeedValue");
+    const centeringStrengthEl = document.getElementById("centeringStrength");
+    const centeringStrengthValueEl = document.getElementById("centeringStrengthValue");
     const aiSpeedSliders = Array.from(document.querySelectorAll("[data-ai-speed]"));
     const aiSpeedValueEls = {
       easy: document.getElementById("easyAiSpeedValue"),
@@ -1106,6 +1114,7 @@
     let selectedDifficulty = "normal";
     let selectedMap = "infinite";
     let playerSpeedScale = Number(playerSpeedEl.value);
+    let centeringStrengthScale = Number(centeringStrengthEl.value);
     let autopilotSpeedScale = Number(autopilotSpeedEl.value);
     let autopilotCollapsed = true;
     let displayedSpeed = 0;
@@ -1141,6 +1150,7 @@
       hard: { aiStrength: 1.08, label: "Hard" }
     };
     const aiSpeedStorageKey = "rcbBrakeGame.aiSpeedSettings.v1";
+    const centeringStrengthStorageKey = "rcbBrakeGame.centeringStrength.v1";
 
     let selectedLanguage = "zh";
     const translations = {
@@ -1160,6 +1170,7 @@
         restart: "重新开始",
         home: "主页",
         playerSpeed: "小车速度",
+        centeringStrength: "回正强度",
         aiSpeed: "AI 速度",
         language: "语言",
         back: "返回",
@@ -1202,6 +1213,7 @@
         restart: "Restart",
         home: "Home",
         playerSpeed: "Car Speed",
+        centeringStrength: "Centering Strength",
         aiSpeed: "AI Speed",
         language: "Language",
         back: "Back",
@@ -1302,11 +1314,15 @@
 
     const skidMarks = [];
     const vehicleCollision = {
-      radius: 12,
-      offsets: [-25, 0, 25],
-      iterations: 2,
-      correction: 0.34,
-      maxPush: 3.2
+      radius: 10.5,
+      offsets: [-18, 0, 18],
+      iterations: 1,
+      correction: 0.16,
+      maxPush: 0.9,
+      aiAvoidancePush: 2.2,
+      aiAvoidanceClamp: 8,
+      aiAvoidanceFollow: 5,
+      aiAvoidanceDecay: 1.45
     };
     let cachedWorldTrackPoints = null;
     let cachedTrackMetrics = null;
@@ -1405,6 +1421,7 @@
         targetSpeed: 338 + index * 15,
         baseLaneOffset: getStartGridLaneOffset(index + 1),
         collisionOffset: 0,
+        collisionOffsetTarget: 0,
         lanePhase: Math.random() * Math.PI * 2,
         x: getStartGridSlot(index + 1).x,
         y: getStartGridSlot(index + 1).y,
@@ -2348,8 +2365,8 @@
       const toCenterX = info.closest.x - car.x;
       const toCenterY = info.closest.y - car.y;
       const lateralVelocity = car.vx * info.normal.x + car.vy * info.normal.y;
-      car.vx += (toCenterX * 3.2 - info.normal.x * lateralVelocity * 3.6) * dt;
-      car.vy += (toCenterY * 3.2 - info.normal.y * lateralVelocity * 3.6) * dt;
+      car.vx += (toCenterX * 3.2 * centeringStrengthScale - info.normal.x * lateralVelocity * 3.6 * centeringStrengthScale) * dt;
+      car.vy += (toCenterY * 3.2 * centeringStrengthScale - info.normal.y * lateralVelocity * 3.6 * centeringStrengthScale) * dt;
     }
 
     function applyFixedTrackCentering(dt) {
@@ -2361,14 +2378,14 @@
       const toCenterX = info.closest.x - car.x;
       const toCenterY = info.closest.y - car.y;
       const lateralVelocity = car.vx * info.normal.x + car.vy * info.normal.y;
-      const assist = centerRatio > 0.68 ? 3.8 : 2.2;
-      const damping = centerRatio > 0.68 ? 3.6 : 2.4;
+      const assist = (centerRatio > 0.68 ? 3.8 : 2.2) * centeringStrengthScale;
+      const damping = (centerRatio > 0.68 ? 3.6 : 2.4) * centeringStrengthScale;
 
       car.vx += (toCenterX * assist - info.normal.x * lateralVelocity * damping) * dt;
       car.vy += (toCenterY * assist - info.normal.y * lateralVelocity * damping) * dt;
 
       if (centerRatio > 0.9) {
-        const snap = Math.min(0.08, dt * 0.45);
+        const snap = Math.min(0.08, dt * 0.45 * centeringStrengthScale);
         car.x += toCenterX * snap;
         car.y += toCenterY * snap;
       }
@@ -2431,7 +2448,8 @@
         const targetSpeed = (opponent.targetSpeed + difficultyBonus + rubberBand + cornerBoost) * aiStrength + Math.sin(car.runTime * 0.8 + opponent.lanePhase) * 14;
         opponent.speed += (targetSpeed - opponent.speed) * Math.min(1, dt * 2.5);
         opponent.progress += opponent.speed * dt;
-        opponent.collisionOffset *= Math.max(0, 1 - dt * 2.8);
+        opponent.collisionOffsetTarget *= Math.max(0, 1 - dt * vehicleCollision.aiAvoidanceDecay);
+        opponent.collisionOffset += (opponent.collisionOffsetTarget - opponent.collisionOffset) * Math.min(1, dt * vehicleCollision.aiAvoidanceFollow);
 
         const trackPoint = getTrackPointAtProgress(opponent.progress);
         const laneWander = Math.sin(opponent.progress * 0.008 + opponent.lanePhase) * 8;
@@ -2528,7 +2546,12 @@
 
       const info = nearestTrackCenterInfo(vehicle.x, vehicle.y);
       const sidePush = nx * info.normal.x + ny * info.normal.y;
-      vehicle.body.collisionOffset = clamp((vehicle.body.collisionOffset || 0) + sidePush * 6, -14, 14);
+      const target = vehicle.body.collisionOffsetTarget || 0;
+      vehicle.body.collisionOffsetTarget = clamp(
+        target + sidePush * vehicleCollision.aiAvoidancePush,
+        -vehicleCollision.aiAvoidanceClamp,
+        vehicleCollision.aiAvoidanceClamp
+      );
     }
 
     function updateLeaderboard() {
@@ -2682,6 +2705,7 @@
       settingsTitleEl.textContent = t("settings");
       settingsSectionLabelEl.textContent = t("settings");
       playerSpeedLabelEl.textContent = t("playerSpeed");
+      centeringStrengthLabelEl.textContent = t("centeringStrength");
       aiSpeedSettingsLabelEl.textContent = t("aiSpeed");
       easyAiSpeedLabelEl.textContent = `${t("easy")} AI`;
       normalAiSpeedLabelEl.textContent = `${t("normal")} AI`;
@@ -2707,12 +2731,46 @@
       if (trackSegments.length) updateLeaderboardPanelF1();
       updateAutopilotDisplay();
       updateAiSpeedSettingsDisplay();
+      updateCenteringStrengthDisplay();
       updatePauseDisplay();
     }
 
     function updatePlayerSpeedDisplay() {
       playerSpeedScale = Number(playerSpeedEl.value);
       playerSpeedValueEl.textContent = `${Math.round(playerSpeedScale * 100)}%`;
+    }
+
+    function loadCenteringStrengthSetting() {
+      try {
+        const saved = Number(localStorage.getItem(centeringStrengthStorageKey));
+        if (Number.isFinite(saved) && saved > 0) {
+          centeringStrengthScale = clamp(saved, 0.4, 1.6);
+          centeringStrengthEl.value = String(centeringStrengthScale);
+        }
+      } catch (error) {
+        // Loading settings is best-effort when the prototype is opened from file://.
+      }
+    }
+
+    function saveCenteringStrengthSetting() {
+      try {
+        localStorage.setItem(centeringStrengthStorageKey, String(centeringStrengthScale));
+      } catch (error) {
+        // Saving settings is best-effort when the prototype is opened from file://.
+      }
+    }
+
+    function updateCenteringStrengthDisplay() {
+      centeringStrengthScale = clamp(Number(centeringStrengthEl.value), 0.4, 1.6);
+      centeringStrengthEl.value = String(centeringStrengthScale);
+      centeringStrengthValueEl.textContent = `${Math.round(centeringStrengthScale * 100)}%`;
+    }
+
+    function setCenteringStrength(value) {
+      centeringStrengthScale = clamp(Number(value), 0.4, 1.6);
+      centeringStrengthEl.value = String(centeringStrengthScale);
+      updateCenteringStrengthDisplay();
+      saveCenteringStrengthSetting();
     }
 
     function loadAiSpeedSettings() {
@@ -4449,6 +4507,7 @@
     });
 
     playerSpeedEl.addEventListener("input", updatePlayerSpeedDisplay);
+    centeringStrengthEl.addEventListener("input", () => setCenteringStrength(centeringStrengthEl.value));
     aiSpeedSliders.forEach((slider) => {
       slider.addEventListener("input", () => setAiSpeedForDifficulty(slider.dataset.aiSpeed, slider.value));
     });
@@ -4488,10 +4547,12 @@
 
     window.addEventListener("pageshow", () => {
       loadAiSpeedSettings();
+      loadCenteringStrengthSetting();
       selectDifficulty(selectedDifficulty);
       selectMap(selectedMap);
       applyLanguage();
       updatePlayerSpeedDisplay();
+      updateCenteringStrengthDisplay();
       updateAiSpeedSettingsDisplay();
       updateAutopilotDisplay();
     });
@@ -4517,9 +4578,11 @@
     });
 
     loadAiSpeedSettings();
+    loadCenteringStrengthSetting();
     selectDifficulty("normal");
     selectMap("infinite");
     updatePlayerSpeedDisplay();
+    updateCenteringStrengthDisplay();
     updateAiSpeedSettingsDisplay();
     updateAutopilotDisplay();
     reset();
