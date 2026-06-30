@@ -13,6 +13,9 @@ on:
       - "RacingGameRCB/package-lock.json"
       - ".github/workflows/build-mac.yml"
 
+permissions:
+  contents: write
+
 jobs:
   build-mac:
     runs-on: macos-latest
@@ -45,3 +48,15 @@ jobs:
           name: RCB-Brake-Racing-macOS-Apple-Silicon
           path: RacingGameRCB/dist-app/*.zip
           if-no-files-found: error
+
+      - name: Publish downloadable release
+        run: |
+          ZIP_FILE="$(ls dist-app/*.zip | head -n 1)"
+          gh release delete macos-apple-silicon-latest --yes || true
+          git tag -f macos-apple-silicon-latest
+          git push origin -f macos-apple-silicon-latest
+          gh release create macos-apple-silicon-latest "$ZIP_FILE" \
+            --title "RCB Brake Racing macOS Apple Silicon" \
+            --notes "Unsigned Apple Silicon build generated from commit ${GITHUB_SHA}."
+        env:
+          GH_TOKEN: ${{ github.token }}
