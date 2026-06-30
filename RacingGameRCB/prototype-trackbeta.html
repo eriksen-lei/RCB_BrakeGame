@@ -221,14 +221,17 @@
       bottom: 22px;
       width: 150px;
       height: 150px;
+      --speed-ring-inset: 5px;
       display: grid;
       place-items: center;
-      border: 4px solid rgba(255, 255, 255, 0.82);
       border-radius: 50%;
       background:
-        radial-gradient(circle at 50% 52%, rgba(34, 47, 52, 0.96) 0 35%, rgba(13, 17, 20, 0.96) 36% 61%, transparent 62%),
-        var(--rpm-arc, conic-gradient(from -135deg, rgba(255, 255, 255, 0.12) 0 360deg));
-      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34), inset 0 0 0 9px rgba(0, 0, 0, 0.52);
+        radial-gradient(circle at 50% 48%, rgba(64, 78, 76, 0.72) 0 22%, rgba(19, 28, 31, 0.96) 23% 47%, rgba(7, 10, 13, 0.98) 48% 100%);
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.34),
+        0 0 0 4px rgba(248, 251, 255, 0.92),
+        inset 0 0 0 10px rgba(0, 0, 0, 0.55),
+        inset 0 0 0 21px rgba(20, 28, 31, 0.96);
       color: var(--ui-white);
       overflow: hidden;
       pointer-events: none;
@@ -256,16 +259,19 @@
     .speedometer::before {
       content: "";
       position: absolute;
-      inset: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.28);
+      inset: var(--speed-ring-inset);
       border-radius: 50%;
-      box-shadow: inset 0 0 0 16px rgba(9, 13, 16, 0.78);
+      background:
+        radial-gradient(circle, rgba(14, 20, 23, 0.98) 0 56%, rgba(14, 20, 23, 0.92) 57%, transparent 58%),
+        var(--rpm-arc, conic-gradient(from -135deg, rgba(255, 255, 255, 0.12) 0 360deg));
+      box-shadow: 0 0 16px rgba(255, 216, 77, 0.24);
+      z-index: 0;
     }
 
     .speedometer::after {
       content: "RCB";
       position: absolute;
-      top: 21px;
+      top: 25px;
       left: 50%;
       padding: 2px 8px;
       border-radius: 2px;
@@ -273,13 +279,14 @@
       color: #111820;
       font: 900 10px/1 var(--ui-mono);
       transform: translateX(-50%);
+      z-index: 2;
     }
 
     .speed-readout {
       position: relative;
       text-align: center;
       transform: translateY(10px);
-      z-index: 1;
+      z-index: 3;
       font-family: var(--ui-mono);
     }
 
@@ -877,12 +884,13 @@
       width: 48px;
       height: 48px;
       padding: 0;
-      border: 2px solid rgba(93, 183, 255, 0.86);
+      border: 2px solid rgba(255, 216, 77, 0.95);
       border-radius: 50%;
-      background: rgba(7, 10, 12, 0.9);
+      background: var(--ui-yellow);
       display: grid;
       place-items: center;
       overflow: hidden;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), 0 0 0 4px rgba(17, 24, 32, 0.5);
     }
 
     .autopilot-panel.collapsed .autopilot-content,
@@ -898,17 +906,39 @@
     .pause-button {
       position: fixed;
       right: 24px;
-      top: 268px;
-      min-width: 92px;
-      min-height: 38px;
+      top: 214px;
+      width: 46px;
+      height: 46px;
+      min-width: 46px;
+      min-height: 46px;
       border: 2px solid rgba(255, 216, 77, 0.74);
       border-radius: 8px;
       background: var(--ui-panel);
       color: var(--ui-yellow);
-      font: 900 13px var(--ui-font);
+      font: 0/0 a;
       cursor: pointer;
       z-index: 4;
       box-shadow: var(--ui-shadow);
+    }
+
+    .pause-button::before,
+    .pause-button::after {
+      content: "";
+      position: absolute;
+      top: 12px;
+      width: 6px;
+      height: 20px;
+      border-radius: 2px;
+      background: currentColor;
+      box-shadow: 0 0 10px rgba(255, 216, 77, 0.28);
+    }
+
+    .pause-button::before {
+      left: 15px;
+    }
+
+    .pause-button::after {
+      right: 15px;
     }
 
     .pause-button.hidden {
@@ -918,6 +948,23 @@
     .pause-button.active {
       background: var(--ui-yellow);
       color: var(--ui-ink);
+    }
+
+    .pause-button.active::before {
+      top: 12px;
+      left: 17px;
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 16px solid currentColor;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .pause-button.active::after {
+      display: none;
     }
 
     .pause-banner {
@@ -991,8 +1038,16 @@
       border: 0;
       border-radius: 50%;
       background: transparent;
-      color: var(--ui-blue);
+      color: var(--ui-ink);
       font: 900 24px/1 var(--ui-mono);
+    }
+
+    .autopilot-panel.collapsed .autopilot-toggle:hover {
+      border-color: transparent;
+      background: rgba(255, 255, 255, 0.22);
+      color: var(--ui-ink);
+      box-shadow: none;
+      transform: none;
     }
 
     .autopilot-button.active {
@@ -1061,7 +1116,7 @@
 
       .pause-button {
         right: 12px;
-        top: 208px;
+        top: 158px;
       }
 
       .race-timer {
@@ -1086,6 +1141,7 @@
         bottom: 12px;
         width: 124px;
         height: 124px;
+        --speed-ring-inset: 4px;
       }
 
       .speed-value {
@@ -1156,7 +1212,7 @@
     </div>
   </div>
 
-  <button class="pause-button hidden" id="pauseButton" type="button">Pause</button>
+  <button class="pause-button hidden" id="pauseButton" type="button" aria-label="Pause" title="Pause"></button>
   <div class="pause-banner" id="pauseBanner">Pause</div>
 
   <div class="start-screen" id="startScreen">
@@ -1647,6 +1703,7 @@
     let lastSpeedometerText = "";
     let activeAnchorIndex = 0;
     let pacenoteHintState = { anchor: null, startedAt: 0, previousNotes: [] };
+    let cornerActionHintComplete = false;
     let fixedStartProgress = 0;
 
     function reset() {
@@ -1675,6 +1732,7 @@
       car.respawnTarget = null;
       skidMarks.length = 0;
       activeAnchorIndex = 0;
+      cornerActionHintComplete = false;
       lastRankPositions = new Map();
       rankChangeEffects = new Map();
       race.elapsed = 0;
@@ -1749,6 +1807,7 @@
         progress: getStartGridProgress(index + 1),
         speed: 325 + index * 12,
         targetSpeed: 338 + index * 15,
+        boostTimer: 0,
         baseLaneOffset: getStartGridLaneOffset(index + 1),
         collisionOffset: 0,
         collisionOffsetTarget: 0,
@@ -1822,7 +1881,9 @@
               turnDir: current.dir,
               fixedIndex: i,
               trackX: current.midPoint.x,
-              trackY: current.midPoint.y
+              trackY: current.midPoint.y,
+              exitX: current.arcEnd.x,
+              exitY: current.arcEnd.y
             });
           }
         }
@@ -1834,6 +1895,7 @@
       numberFixedAnchors();
       fixedStartProgress = getFixedStartProgress();
       addFixedMapBoostPads();
+      addFixedBoostPadAfterTurn(14, 90);
     }
 
     function toFixedMapWorldPoint(point) {
@@ -1935,6 +1997,9 @@
     function assignFixedAnchorProgress() {
       anchors.forEach((anchor) => {
         anchor.progress = getTrackProgressAtPoint(anchor.trackX, anchor.trackY);
+        if (Number.isFinite(anchor.exitX) && Number.isFinite(anchor.exitY)) {
+          anchor.exitProgress = getTrackProgressAtPoint(anchor.exitX, anchor.exitY);
+        }
       });
       anchors.sort((a, b) => a.progress - b.progress);
     }
@@ -1982,6 +2047,22 @@
         const length = Math.hypot(segment.to.x - segment.from.x, segment.to.y - segment.from.y);
         addFixedBoostPadsOnStraight(segment.from, segment.to, heading, length);
       }
+    }
+
+    function addFixedBoostPadAfterTurn(turnNumber, exitDistance) {
+      const anchor = anchors.find((item) => item.turnNumber === turnNumber);
+      if (!anchor || !Number.isFinite(anchor.progress)) return;
+
+      const baseProgress = Number.isFinite(anchor.exitProgress) ? anchor.exitProgress : anchor.progress;
+      const point = getTrackPointAtProgress(baseProgress + exitDistance);
+      boostPads.push({
+        x: point.x,
+        y: point.y,
+        angle: Math.atan2(point.tangent.y, point.tangent.x),
+        used: false,
+        cooldown: 0,
+        source: `turn-${turnNumber}-exit`
+      });
     }
 
     function addFixedBoostPadsOnStraight(from, to, heading, length) {
@@ -2488,8 +2569,7 @@
     }
 
     function updateRaceTimer() {
-      const visible = gameStarted && currentMode === "race" && !gameOverEl.classList.contains("visible");
-      raceTimerEl.classList.toggle("hidden", !visible);
+      raceTimerEl.classList.add("hidden");
       const playerProgress = gameStarted ? getPlayerRaceProgress() : 0;
       const remainingMeters = getRaceRemainingMeters(playerProgress);
       raceTimeEl.textContent = String(remainingMeters);
@@ -2501,24 +2581,8 @@
     }
 
     function updateRaceNotice(dt) {
-      if (!gameStarted || currentMode !== "race" || race.finished || gameOverEl.classList.contains("visible")) {
-        race.noticeTimer = 0;
-        raceNoticeEl.classList.add("hidden");
-        return;
-      }
-
-      race.noticeTimer = Math.max(0, race.noticeTimer - dt);
-
-      const remainingMeters = getRaceRemainingMeters();
-      [1000, 500, 100].forEach((milestone) => {
-        if (remainingMeters <= milestone && !race.shownMilestones.has(milestone)) {
-          race.shownMilestones.add(milestone);
-          race.noticeTimer = 1.8;
-          raceNoticeEl.textContent = t("metersRemaining", { meters: milestone });
-        }
-      });
-
-      raceNoticeEl.classList.toggle("hidden", race.noticeTimer <= 0);
+      race.noticeTimer = 0;
+      raceNoticeEl.classList.add("hidden");
     }
 
     function finishRace() {
@@ -2789,19 +2853,11 @@
     function applyBoostPads(dt) {
       for (const pad of boostPads) {
         pad.cooldown = Math.max(0, (pad.cooldown || 0) - dt);
-        pad.used = pad.cooldown > 0;
+        pad.aiFlash = Math.max(0, (pad.aiFlash || 0) - dt);
+        pad.used = pad.cooldown > 0 || pad.aiFlash > 0;
         if (pad.cooldown > 0 || Math.abs(pad.y - car.y) > 900 || Math.abs(pad.x - car.x) > 900) continue;
 
-        const dx = car.x - pad.x;
-        const dy = car.y - pad.y;
-        const forwardX = Math.cos(pad.angle);
-        const forwardY = Math.sin(pad.angle);
-        const sideX = -forwardY;
-        const sideY = forwardX;
-        const along = dx * forwardX + dy * forwardY;
-        const lateral = dx * sideX + dy * sideY;
-
-        if (Math.abs(along) < 54 && Math.abs(lateral) < road.width * 0.3) {
+        if (isOnBoostPad(pad, car.x, car.y)) {
           pad.used = true;
           pad.cooldown = 1.15;
           car.boostTimer = 1.05;
@@ -2809,6 +2865,39 @@
           const boostSpeed = Math.min(car.maxFreeSpeed * 1.12, Math.max(470, currentSpeed * 1.22));
           car.vx = (car.vx / currentSpeed) * boostSpeed;
           car.vy = (car.vy / currentSpeed) * boostSpeed;
+        }
+      }
+    }
+
+    function isOnBoostPad(pad, x, y, lateralScale = 0.3) {
+      const dx = x - pad.x;
+      const dy = y - pad.y;
+      const forwardX = Math.cos(pad.angle);
+      const forwardY = Math.sin(pad.angle);
+      const sideX = -forwardY;
+      const sideY = forwardX;
+      const along = dx * forwardX + dy * forwardY;
+      const lateral = dx * sideX + dy * sideY;
+      return Math.abs(along) < 54 && Math.abs(lateral) < road.width * lateralScale;
+    }
+
+    function applyAiBoostPads(opponent, dt) {
+      opponent.boostTimer = Math.max(0, (opponent.boostTimer || 0) - dt);
+
+      for (const pad of boostPads) {
+        const key = opponent.name;
+        pad.aiCooldowns = pad.aiCooldowns || {};
+        pad.aiCooldowns[key] = Math.max(0, (pad.aiCooldowns[key] || 0) - dt);
+        if (Math.abs(pad.y - opponent.y) > 900 || Math.abs(pad.x - opponent.x) > 900) continue;
+        if (pad.aiCooldowns[key] > 0) continue;
+
+        if (isOnBoostPad(pad, opponent.x, opponent.y, 0.34)) {
+          pad.aiCooldowns[key] = 1.15;
+          pad.aiFlash = 0.35;
+          pad.used = true;
+          opponent.boostTimer = 1.0;
+          opponent.speed = Math.min(opponent.targetSpeed * 1.42, Math.max(455, opponent.speed * 1.2));
+          break;
         }
       }
     }
@@ -2825,7 +2914,8 @@
         const rubberBand = opponent.progress < playerProgress - 520 ? 120 : opponent.progress > playerProgress + 640 ? -18 : 0;
         const cornerBoost = Math.abs(Math.sin(opponent.progress * 0.004)) * 18;
         const expoAiScale = 0.86 + (getExpoEaseScale() - 0.82) * 0.78;
-        const targetSpeed = ((opponent.targetSpeed + difficultyBonus + rubberBand + cornerBoost) * aiStrength + Math.sin(car.runTime * 0.8 + opponent.lanePhase) * 14) * expoAiScale;
+        const boostBonus = opponent.boostTimer > 0 ? 128 : 0;
+        const targetSpeed = ((opponent.targetSpeed + difficultyBonus + rubberBand + cornerBoost + boostBonus) * aiStrength + Math.sin(car.runTime * 0.8 + opponent.lanePhase) * 14) * expoAiScale;
         opponent.speed += (targetSpeed - opponent.speed) * Math.min(1, dt * 2.5);
         opponent.progress += opponent.speed * dt;
         opponent.collisionOffsetTarget *= Math.max(0, 1 - dt * vehicleCollision.aiAvoidanceDecay);
@@ -2837,6 +2927,7 @@
         opponent.x = trackPoint.x + trackPoint.normal.x * offset;
         opponent.y = trackPoint.y + trackPoint.normal.y * offset;
         opponent.angle = Math.atan2(trackPoint.tangent.y, trackPoint.tangent.x);
+        applyAiBoostPads(opponent, dt);
       }
     }
 
@@ -3432,7 +3523,9 @@
       const visible = gameStarted && !gameOverEl.classList.contains("visible") && !race.finished;
       pauseButtonEl.classList.toggle("hidden", !visible);
       pauseButtonEl.classList.toggle("active", isPaused);
-      pauseButtonEl.textContent = isPaused ? getResumeLabel() : getPauseLabel();
+      pauseButtonEl.textContent = "";
+      pauseButtonEl.setAttribute("aria-label", isPaused ? getResumeLabel() : getPauseLabel());
+      pauseButtonEl.setAttribute("title", isPaused ? getResumeLabel() : getPauseLabel());
       pauseBannerEl.classList.toggle("visible", visible && isPaused);
       pauseBannerEl.textContent = getPausedLabel();
     }
@@ -3461,16 +3554,17 @@
       const sweep = clamp(speed / 220, 0, 1) * 240;
       const parts = [];
       const greenEnd = Math.min(sweep, 90);
-      if (greenEnd > 0) parts.push(`#49d27e 0deg ${greenEnd.toFixed(1)}deg`);
+      if (greenEnd > 0) parts.push(`#35ff88 0deg ${greenEnd.toFixed(1)}deg`);
       if (sweep > 90) {
         const yellowEnd = Math.min(sweep, 178);
-        parts.push(`#ffd84d 90deg ${yellowEnd.toFixed(1)}deg`);
+        parts.push(`#ffe03f 90deg ${yellowEnd.toFixed(1)}deg`);
       }
       if (sweep > 178) {
         const redEnd = Math.min(sweep, 240);
-        parts.push(`#ff4d42 178deg ${redEnd.toFixed(1)}deg`);
+        parts.push(`#ff2f2f 178deg ${redEnd.toFixed(1)}deg`);
       }
-      parts.push(`rgba(255, 255, 255, 0.13) ${sweep.toFixed(1)}deg 360deg`);
+      parts.push(`rgba(248, 251, 255, 0.08) ${sweep.toFixed(1)}deg 240deg`);
+      parts.push(`rgba(0, 0, 0, 0) 240deg 360deg`);
       return `conic-gradient(from -135deg, ${parts.join(", ")})`;
     }
 
@@ -4580,7 +4674,9 @@
         drawWrcTurnCard(animated.x, animated.y, animated.w, animated.h, note.side >= 0 ? 1 : -1, scale, note, index, alpha);
       });
 
-      drawCornerActionBanner(width / 2, y + bigH + 12 * scale, Math.min(520, width - 34), 44 * scale, hint, scale);
+      if (shouldShowCornerActionBanner(hint)) {
+        drawCornerActionBanner(width / 2, y + bigH + 12 * scale, Math.min(520, width - 34), 44 * scale, hint, scale);
+      }
 
       ctx.shadowColor = "transparent";
       ctx.restore();
@@ -4588,6 +4684,15 @@
       if (transition >= 1) {
         pacenoteHintState.previousNotes = notes;
       }
+    }
+
+    function shouldShowCornerActionBanner(hint) {
+      const turnNumber = Number(hint.turnNumber) || activeAnchorIndex + 1;
+      if (cornerActionHintComplete || turnNumber > 2 || activeAnchorIndex > 1) {
+        cornerActionHintComplete = true;
+        return false;
+      }
+      return true;
     }
 
     function getCornerActionStage(hint) {
