@@ -6,16 +6,19 @@ on:
     branches:
       - master
     paths:
-      - "prototype-trackbeta.html"
-      - "Resources/**"
-      - "electron/**"
-      - "package.json"
-      - "package-lock.json"
+      - "RacingGameRCB/prototype-trackbeta.html"
+      - "RacingGameRCB/Resources/**"
+      - "RacingGameRCB/electron/**"
+      - "RacingGameRCB/package.json"
+      - "RacingGameRCB/package-lock.json"
       - ".github/workflows/build-mac.yml"
 
 jobs:
   build-mac:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: RacingGameRCB
 
     steps:
       - name: Checkout
@@ -26,11 +29,12 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: RacingGameRCB/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build unsigned macOS app
+      - name: Build unsigned Apple Silicon macOS app
         run: npm run app:builder:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -38,6 +42,6 @@ jobs:
       - name: Upload macOS app
         uses: actions/upload-artifact@v4
         with:
-          name: RCB-Brake-Racing-macOS
-          path: dist-app/*.zip
+          name: RCB-Brake-Racing-macOS-Apple-Silicon
+          path: RacingGameRCB/dist-app/*.zip
           if-no-files-found: error
