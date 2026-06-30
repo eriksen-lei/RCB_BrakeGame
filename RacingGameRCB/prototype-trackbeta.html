@@ -478,6 +478,35 @@
       color: #ff8b83;
     }
 
+    .controller-force {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 8px;
+      margin-top: 7px;
+      color: rgba(248, 251, 255, 0.78);
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+
+    .controller-force-track {
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(248, 251, 255, 0.32);
+      background: rgba(248, 251, 255, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.34);
+    }
+
+    .controller-force-fill {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform: scaleX(0);
+      transform-origin: left center;
+      background: linear-gradient(90deg, var(--ui-green), var(--ui-yellow), #ff645f);
+      transition: transform 90ms linear;
+    }
+
     .controller-readout.connected {
       border-color: rgba(78, 224, 131, 0.76);
       box-shadow: inset 4px 0 0 var(--ui-green);
@@ -1214,6 +1243,10 @@
         <div class="controller-readout" id="controllerReadout">
           <span class="controller-name" id="controllerName">CircuitPython HID</span>
           <span class="controller-state" id="controllerState">未连接</span>
+          <div class="controller-force" aria-label="按压力度">
+            <span id="controllerAxisY">按压力度</span>
+            <span class="controller-force-track"><i class="controller-force-fill" id="controllerForceFill"></i></span>
+          </div>
         </div>
         <button class="menu-button controller-scan" id="controllerScanButton" type="button">检测</button>
       </div>
@@ -1296,6 +1329,8 @@
     const controllerReadoutEl = document.getElementById("controllerReadout");
     const controllerNameEl = document.getElementById("controllerName");
     const controllerStateEl = document.getElementById("controllerState");
+    const controllerAxisYEl = document.getElementById("controllerAxisY");
+    const controllerForceFillEl = document.getElementById("controllerForceFill");
     const controllerScanButtonEl = document.getElementById("controllerScanButton");
     const startButtonEl = document.getElementById("startButton");
     const raceButtonEl = document.getElementById("raceButton");
@@ -1326,7 +1361,12 @@
     };
 
     const input = {
-      space: false
+      space: false,
+      keyboard: false,
+      pointer: false,
+      gamepad: false,
+      gamepadAxisY: 0,
+      gamepadAxes: []
     };
 
     const camera = {
@@ -1373,10 +1413,15 @@
 
     const brakeController = {
       targetName: "CircuitPython HID",
+      targetNames: ["CircuitPython HID", "RCBGAME CONTROLLER"],
       connected: false,
       checking: false,
-      deviceName: ""
+      deviceName: "",
+      source: "",
+      hidDevice: null,
+      hidReportAttached: false
     };
+    const hidReportDevices = new WeakSet();
 
     const race = {
       duration: 45,
@@ -2302,7 +2347,7 @@
       syncActiveAnchorToCar();
 
       if (autopilot.enabled) {
-        input.space = false;
+        clearBrakeInput();
         applyAutopilot(dt);
       } else {
         if (input.space && !car.attached) {
@@ -2482,7 +2527,7 @@
       isPaused = false;
       car.attached = false;
       car.anchor = null;
-      input.space = false;
+      clearBrakeInput();
       updateRaceTimer();
       updateRespawnBanner();
       updateRaceNotice(0);
@@ -3090,7 +3135,8 @@
     }
 
     function isTargetControllerName(name) {
-      return normalizeControllerName(name).includes(normalizeControllerName(brakeController.targetName));
+      const normalized = normalizeControllerName(name);
+      return brakeController.targetNames.some((target) => normalized.includes(normalizeControllerName(target)));
     }
 
     function getControllerText(kind) {
@@ -3100,7 +3146,7 @@
         disconnected: zh ? "未连接" : "Disconnected",
         checking: zh ? "检测中..." : "Checking...",
         scan: zh ? "检测" : "Scan",
-        unsupported: zh ? "未检测到，或浏览器未授权" : "Not found, or browser permission is missing"
+        unsupported: zh ? "未检测到控制器" : "Controller not detected"
       };
       return text[kind];
     }
@@ -3114,7 +3160,75 @@
         : brakeController.connected
           ? getControllerText("connected")
           : getControllerText("unsupported");
+      const y = Number.isFinite(input.gamepadAxes[1]) ? input.gamepadAxes[1] : 0;
+      const brakeForce = clamp(Math.max(0, y), 0, 1);
+      controllerAxisYEl.textContent = selectedLanguage === "zh" ? "按压力度" : "PRESSURE";
+      controllerForceFillEl.style.transform = `scaleX(${brakeForce.toFixed(3)})`;
       controllerScanButtonEl.textContent = getControllerText("scan");
+    }
+
+    function syncBrakeInput() {
+      input.space = Boolean(input.keyboard || input.pointer || input.gamepad);
+    }
+
+    function setBrakeInputSource(source, active) {
+      input[source] = Boolean(active);
+      syncBrakeInput();
+    }
+
+    function clearBrakeInput() {
+      input.keyboard = false;
+      input.pointer = false;
+      input.gamepad = false;
+      input.gamepadAxisY = 0;
+      input.gamepadAxes = [];
+      input.space = false;
+    }
+
+    function getBrakeGamepad() {
+      if (typeof navigator.getGamepads !== "function") return null;
+      const pads = Array.from(navigator.getGamepads()).filter(Boolean);
+      return pads.find((pad) => isTargetControllerName(pad.id)) || pads.find((pad) => pad.axes && pad.axes.length > 1) || null;
+    }
+
+    function signedByte(value) {
+      return value > 127 ? value - 256 : value;
+    }
+
+    function setControllerAxes(axes, deviceName, source) {
+      input.gamepadAxes = axes;
+      input.gamepadAxisY = Number.isFinite(axes[1]) ? axes[1] : 0;
+      brakeController.connected = true;
+      brakeController.deviceName = deviceName || brakeController.targetName;
+      brakeController.source = source || "";
+      updateControllerStatusDisplay();
+    }
+
+    function handleHidInputReport(event) {
+      const data = event.data;
+      if (!data || data.byteLength < 4) return;
+      const x = signedByte(data.getUint8(2)) / 127;
+      const y = signedByte(data.getUint8(3)) / 127;
+      setControllerAxes([x, y], event.device.productName, "HID");
+    }
+
+    async function attachHidController(device) {
+      if (!device) return false;
+      brakeController.hidDevice = device;
+      brakeController.deviceName = device.productName || brakeController.targetName;
+      brakeController.source = "HID";
+      brakeController.connected = true;
+      if (!hidReportDevices.has(device)) {
+        device.addEventListener("inputreport", handleHidInputReport);
+        hidReportDevices.add(device);
+      }
+      try {
+        if (!device.opened) await device.open();
+      } catch (error) {
+        // Status detection can still use the remembered HID permission even if opening is blocked.
+      }
+      updateControllerStatusDisplay();
+      return true;
     }
 
     async function detectBrakeController(options = {}) {
@@ -3122,34 +3236,72 @@
       brakeController.checking = true;
       updateControllerStatusDisplay();
 
-      let foundName = "";
-      const gamepads = typeof navigator.getGamepads === "function" ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
-      const gamepad = gamepads.find((pad) => isTargetControllerName(pad.id));
-      if (gamepad) foundName = gamepad.id;
+      let found = false;
+      const gamepad = getBrakeGamepad();
+      if (gamepad) {
+        const axes = Array.from(gamepad.axes || []).map((axis) => Number.isFinite(axis) ? axis : 0);
+        setControllerAxes(axes, gamepad.id, "GAMEPAD");
+        found = true;
+      }
 
-      if (!foundName && navigator.hid && typeof navigator.hid.getDevices === "function") {
+      if (!found && navigator.hid && typeof navigator.hid.getDevices === "function") {
         try {
           const devices = await navigator.hid.getDevices();
           const device = devices.find((item) => isTargetControllerName(item.productName));
-          if (device) foundName = device.productName;
+          found = await attachHidController(device);
         } catch (error) {
-          // Permission or browser support can fail silently for this status-only check.
+          // Browser HID permissions are best-effort here; Gamepad API remains the primary path.
         }
       }
 
-      if (!foundName && request && navigator.hid && typeof navigator.hid.requestDevice === "function") {
+      if (!found && request && navigator.hid && typeof navigator.hid.requestDevice === "function") {
         try {
           const devices = await navigator.hid.requestDevice({ filters: [] });
-          const device = devices.find((item) => isTargetControllerName(item.productName)) || devices[0];
-          if (device && isTargetControllerName(device.productName)) foundName = device.productName;
+          const device = devices.find((item) => isTargetControllerName(item.productName));
+          found = await attachHidController(device);
         } catch (error) {
-          // User cancelled or browser blocked the picker.
+          // User cancelled the picker or the browser blocked the request.
         }
       }
 
-      brakeController.connected = Boolean(foundName);
-      brakeController.deviceName = foundName || brakeController.targetName;
+      brakeController.connected = Boolean(found);
+      if (!found) {
+        input.gamepadAxes = [];
+        input.gamepadAxisY = 0;
+        brakeController.deviceName = brakeController.targetName;
+        brakeController.source = "";
+        brakeController.hidDevice = null;
+        brakeController.hidReportAttached = false;
+      }
       brakeController.checking = false;
+      updateControllerStatusDisplay();
+    }
+
+    function updateGamepadBrakeInput() {
+      const pad = getBrakeGamepad();
+      const axes = pad && pad.axes
+        ? Array.from(pad.axes).map((axis) => Number.isFinite(axis) ? axis : 0)
+        : [];
+      if (pad && axes.length) {
+        setControllerAxes(axes, pad.id, "GAMEPAD");
+      } else if (!brakeController.hidDevice) {
+        input.gamepadAxes = [];
+        input.gamepadAxisY = 0;
+        brakeController.connected = false;
+        brakeController.deviceName = brakeController.targetName;
+        brakeController.source = "";
+      }
+      const axisY = input.gamepadAxisY;
+      if (!gameStarted || isPaused || race.finished || autopilot.enabled || gameOverEl.classList.contains("visible")) {
+        setBrakeInputSource("gamepad", false);
+        updateControllerStatusDisplay();
+        return;
+      }
+
+      const pressThreshold = 0.45;
+      const releaseThreshold = 0.25;
+      const active = input.gamepad ? axisY > releaseThreshold : axisY > pressThreshold;
+      setBrakeInputSource("gamepad", active);
       updateControllerStatusDisplay();
     }
 
@@ -3268,7 +3420,7 @@
 
     function setPaused(paused) {
       isPaused = Boolean(paused) && gameStarted && !gameOverEl.classList.contains("visible") && !race.finished;
-      if (isPaused) input.space = false;
+      if (isPaused) clearBrakeInput();
       updatePauseDisplay();
     }
 
@@ -3360,7 +3512,7 @@
       reset();
       gameStarted = true;
       startScreenEl.classList.add("hidden");
-      input.space = false;
+      clearBrakeInput();
       lastTime = performance.now();
       updateAutopilotDisplay();
       updatePauseDisplay();
@@ -3383,7 +3535,7 @@
       car.speed = 0;
       car.boostTimer = 0;
       car.slideTimer = 0;
-      input.space = false;
+      clearBrakeInput();
       gameOverEl.classList.remove("visible");
       resultTitleEl.textContent = t("crashed");
       resultBodyEl.textContent = t("crashBody");
@@ -3420,7 +3572,7 @@
       car.crashed = false;
       car.respawnTimer = 0;
       car.respawnTarget = null;
-      input.space = false;
+      clearBrakeInput();
       if (selectedMap === "fixed") {
         practiceLap.lastProgress = getTrackProgressAt(car.x, car.y);
         practiceLap.totalProgress = practiceLap.completed * buildTrackMetrics().total + practiceLap.lastProgress;
@@ -3447,7 +3599,7 @@
     function returnHome() {
       gameStarted = false;
       isPaused = false;
-      input.space = false;
+      clearBrakeInput();
       gameOverEl.classList.remove("visible");
       updateRespawnBanner();
       updateRaceTimer();
@@ -5143,6 +5295,7 @@
     function loop(now) {
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
+      updateGamepadBrakeInput();
       if (gameStarted && !isPaused) update(dt);
       draw();
       updateSpeedometer();
@@ -5153,7 +5306,7 @@
       if (event.code === "Space") {
         event.preventDefault();
         if (isPaused) return;
-        input.space = true;
+        setBrakeInputSource("keyboard", true);
       }
       if (event.code === "KeyR") {
         if (gameOverEl.classList.contains("visible")) restartRace();
@@ -5167,7 +5320,7 @@
 
     window.addEventListener("keyup", (event) => {
       if (event.code === "Space") {
-        input.space = false;
+        setBrakeInputSource("keyboard", false);
       }
     });
 
@@ -5187,7 +5340,7 @@
     });
     autopilotButtonEl.addEventListener("click", () => {
       autopilot.enabled = !autopilot.enabled;
-      input.space = false;
+      clearBrakeInput();
       if (car.attached) {
         car.attached = false;
         car.anchor = null;
@@ -5238,17 +5391,17 @@
     window.addEventListener("pointerdown", (event) => {
       if (isUiControl(event.target)) return;
       if (isPaused) return;
-      input.space = true;
+      setBrakeInputSource("pointer", true);
     });
 
     window.addEventListener("pointerup", (event) => {
       if (isUiControl(event.target)) return;
       if (isPaused) return;
-      input.space = false;
+      setBrakeInputSource("pointer", false);
     });
 
     window.addEventListener("blur", () => {
-      input.space = false;
+      clearBrakeInput();
     });
 
     loadAiSpeedSettings();
