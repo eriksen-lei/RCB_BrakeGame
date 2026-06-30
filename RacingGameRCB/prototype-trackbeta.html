@@ -432,8 +432,16 @@
 
     .map-buttons {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       gap: 8px;
+    }
+
+    .map-buttons .menu-button {
+      width: 100%;
+      min-height: 52px;
+      font-size: 15px;
+      text-align: center;
+      justify-self: stretch;
     }
 
     .controller-status {
@@ -855,9 +863,7 @@
     }
 
     .tutorial-subtitle {
-      margin-top: 8px;
-      color: rgba(248, 251, 255, 0.82);
-      font: 900 13px var(--ui-font);
+      display: none;
     }
 
     .autopilot-panel {
@@ -972,20 +978,52 @@
       left: 50%;
       top: 50%;
       display: none;
-      padding: 14px 24px;
+      min-width: 280px;
+      padding: 18px 22px;
       border: 3px solid rgba(255, 216, 77, 0.88);
       border-radius: 8px;
       background: var(--ui-panel-strong);
       color: var(--ui-yellow);
-      font: 900 24px var(--ui-mono);
+      font: 900 20px var(--ui-mono);
+      text-align: center;
       transform: translate(-50%, -50%);
-      pointer-events: none;
+      pointer-events: auto;
       z-index: 4;
       box-shadow: var(--ui-shadow);
     }
 
     .pause-banner.visible {
       display: block;
+    }
+
+    .pause-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pause-actions button {
+      min-height: 40px;
+      border: 2px solid rgba(255, 216, 77, 0.8);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--ui-yellow);
+      font: 900 12px var(--ui-mono);
+      cursor: pointer;
+      transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .pause-actions button.primary {
+      border-color: #101820;
+      background: var(--ui-yellow);
+      color: var(--ui-ink);
+    }
+
+    .pause-actions button:hover {
+      border-color: #101820;
+      background: #fff0a3;
+      color: var(--ui-ink);
     }
 
     .autopilot-row {
@@ -1173,7 +1211,7 @@
   <canvas class="full-map hidden" id="fullMap"></canvas>
   <div class="tutorial-overlay" id="tutorialOverlay">
     <div class="tutorial-title" id="tutorialTitle">新手引导：入弯前按住刹车，出弯时松开</div>
-    <div class="tutorial-subtitle" id="tutorialSubtitle">键盘备用：按住 Space / 松开 Space</div>
+    <div class="tutorial-subtitle" id="tutorialSubtitle"></div>
   </div>
 
   <div class="leaderboard" id="leaderboard">
@@ -1213,7 +1251,14 @@
   </div>
 
   <button class="pause-button hidden" id="pauseButton" type="button" aria-label="Pause" title="Pause"></button>
-  <div class="pause-banner" id="pauseBanner">Pause</div>
+  <div class="pause-banner" id="pauseBanner">
+    <div id="pauseBannerTitle">Pause</div>
+    <div class="pause-actions">
+      <button class="primary" id="pauseResumeButton" type="button">继续游戏</button>
+      <button id="pauseRestartButton" type="button">重新开始</button>
+      <button id="pauseHomeButton" type="button">返回主页</button>
+    </div>
+  </div>
 
   <div class="start-screen" id="startScreen">
     <div class="menu-panel">
@@ -1233,8 +1278,7 @@
       <div class="menu-section">
         <strong id="trackLabel">赛道</strong>
         <div class="map-buttons">
-          <button class="menu-button active" type="button" data-map="infinite">无限赛道</button>
-          <button class="menu-button" type="button" data-map="fixed">固定赛道</button>
+          <button class="menu-button active" type="button" data-map="fixed">马来西亚雪邦国际赛道</button>
         </div>
       </div>
 
@@ -1374,6 +1418,10 @@
     const autopilotSpeedValueEl = document.getElementById("autopilotSpeedValue");
     const pauseButtonEl = document.getElementById("pauseButton");
     const pauseBannerEl = document.getElementById("pauseBanner");
+    const pauseBannerTitleEl = document.getElementById("pauseBannerTitle");
+    const pauseResumeButtonEl = document.getElementById("pauseResumeButton");
+    const pauseRestartButtonEl = document.getElementById("pauseRestartButton");
+    const pauseHomeButtonEl = document.getElementById("pauseHomeButton");
     const startScreenEl = document.getElementById("startScreen");
     const mainMenuEl = document.getElementById("mainMenu");
     const settingsMenuEl = document.getElementById("settingsMenu");
@@ -1452,7 +1500,7 @@
     let aiStrength = 0.88;
     let gameStarted = false;
     let selectedDifficulty = "normal";
-    let selectedMap = "infinite";
+    let selectedMap = "fixed";
     let playerSpeedScale = Number(playerSpeedEl.value);
     let centeringStrengthScale = Number(centeringStrengthEl.value);
     let autopilotSpeedScale = Number(autopilotSpeedEl.value);
@@ -1528,8 +1576,7 @@
         normal: "普通",
         hard: "困难",
         track: "赛道",
-        infiniteTrack: "无限赛道",
-        fixedCircuit: "固定赛道",
+        fixedCircuit: "马来西亚雪邦国际赛道",
         practiceMode: "练习模式",
         raceMode: "比赛模式",
         settings: "设置",
@@ -1571,8 +1618,7 @@
         normal: "Normal",
         hard: "Hard",
         track: "Track",
-        infiniteTrack: "Infinite Track",
-        fixedCircuit: "Fixed Circuit",
+        fixedCircuit: "Sepang International Circuit",
         practiceMode: "Practice Mode",
         raceMode: "Race Mode",
         settings: "Settings",
@@ -3200,7 +3246,6 @@
       document.querySelector("[data-difficulty='easy']").textContent = t("easy");
       document.querySelector("[data-difficulty='normal']").textContent = t("normal");
       document.querySelector("[data-difficulty='hard']").textContent = t("hard");
-      document.querySelector("[data-map='infinite']").textContent = t("infiniteTrack");
       document.querySelector("[data-map='fixed']").textContent = t("fixedCircuit");
       document.querySelectorAll("[data-language]").forEach((button) => {
         button.classList.toggle("active", button.dataset.language === selectedLanguage);
@@ -3527,7 +3572,10 @@
       pauseButtonEl.setAttribute("aria-label", isPaused ? getResumeLabel() : getPauseLabel());
       pauseButtonEl.setAttribute("title", isPaused ? getResumeLabel() : getPauseLabel());
       pauseBannerEl.classList.toggle("visible", visible && isPaused);
-      pauseBannerEl.textContent = getPausedLabel();
+      pauseBannerTitleEl.textContent = getPausedLabel();
+      pauseResumeButtonEl.textContent = getResumeLabel();
+      pauseRestartButtonEl.textContent = t("restart");
+      pauseHomeButtonEl.textContent = t("home");
     }
 
     function updateSpeedometer() {
@@ -3579,7 +3627,7 @@
     }
 
     function selectMap(map) {
-      selectedMap = map;
+      selectedMap = "fixed";
       document.querySelectorAll("[data-map]").forEach((button) => {
         button.classList.toggle("active", button.dataset.map === selectedMap);
       });
@@ -4778,7 +4826,7 @@
           y = clamp(window.innerHeight - 116, 150, window.innerHeight - h - 24);
         }
         tutorialTitleEl.textContent = selectedLanguage === "zh" ? "新手引导：入弯前按住刹车，出弯时松开" : "Tutorial: hold brake before the corner, release on exit";
-        tutorialSubtitleEl.textContent = selectedLanguage === "zh" ? "键盘备用：按住 Space / 松开 Space" : "Keyboard backup: hold Space / release Space";
+        tutorialSubtitleEl.textContent = "";
         tutorialOverlayEl.style.left = `${x}px`;
         tutorialOverlayEl.style.top = `${y}px`;
         tutorialOverlayEl.style.width = `${w}px`;
@@ -5443,6 +5491,9 @@
       event.preventDefault();
       togglePause();
     });
+    pauseResumeButtonEl.addEventListener("click", () => setPaused(false));
+    pauseRestartButtonEl.addEventListener("click", () => restartRace());
+    pauseHomeButtonEl.addEventListener("click", () => returnHome());
     autopilotButtonEl.addEventListener("click", () => {
       autopilot.enabled = !autopilot.enabled;
       clearBrakeInput();
@@ -5490,7 +5541,7 @@
     });
 
     function isUiControl(target) {
-      return target instanceof Element && (target.closest(".start-screen") || target.closest(".game-over") || target.closest(".autopilot-panel") || target.closest(".pause-button"));
+      return target instanceof Element && (target.closest(".start-screen") || target.closest(".game-over") || target.closest(".autopilot-panel") || target.closest(".pause-button") || target.closest(".pause-banner"));
     }
 
     window.addEventListener("pointerdown", (event) => {
@@ -5512,7 +5563,7 @@
     loadAiSpeedSettings();
     loadCenteringStrengthSetting();
     selectDifficulty("normal");
-    selectMap("infinite");
+    selectMap("fixed");
     updatePlayerSpeedDisplay();
     updateCenteringStrengthDisplay();
     updateAiSpeedSettingsDisplay();
