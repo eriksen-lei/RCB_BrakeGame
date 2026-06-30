@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sling Drift Core Prototype</title>
+  <title>RCB Anchor Drift</title>
   <style>
     :root {
       --ui-ink: #121820;
@@ -51,28 +51,54 @@
 
     .leaderboard {
       position: fixed;
-      left: 24px;
-      top: 22px;
-      width: 260px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--ui-line);
-      background: linear-gradient(180deg, rgba(23, 30, 38, 0.92), rgba(8, 12, 16, 0.84));
+      left: 18px;
+      top: 18px;
+      width: 250px;
+      padding: 8px 8px 9px;
+      border-radius: 2px 8px 8px 2px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-left: 5px solid #ffffff;
+      background: linear-gradient(180deg, rgba(7, 9, 11, 0.94), rgba(9, 12, 14, 0.88));
       color: var(--ui-white);
-      font-size: 14px;
-      line-height: 1.45;
+      font-size: 13px;
+      line-height: 1.25;
       pointer-events: none;
-      box-shadow: var(--ui-shadow);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+    }
+
+    .leaderboard::before {
+      content: "RCB";
+      display: inline-block;
+      margin: 0 0 5px;
+      padding: 2px 9px 2px 7px;
+      background: #ffffff;
+      color: #080b0d;
+      font: 900 12px/1 var(--ui-mono);
+      letter-spacing: 0;
+      transform: skewX(-10deg);
+    }
+
+    .leaderboard::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 29px;
+      height: 3px;
+      background: linear-gradient(90deg, #e91e24, transparent 72%);
     }
 
     .leaderboard strong {
       display: block;
-      margin: 0 0 8px;
-      padding: 0 4px 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--ui-yellow);
-      font: 900 18px var(--ui-mono);
+      margin: 0 0 6px;
+      padding: 2px 2px 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      font: 900 12px/1 var(--ui-font);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
 
     .rank-header {
@@ -80,47 +106,56 @@
       align-items: baseline;
       justify-content: space-between;
       gap: 12px;
-      margin: 0 0 8px;
-      padding: 0 4px 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--ui-yellow);
-      font-size: 18px;
+      margin: 0 0 6px;
+      padding: 2px 2px 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      font-size: 12px;
       font-weight: 900;
+      text-transform: uppercase;
     }
 
     .lap-counter {
-      color: var(--ui-muted);
-      font-size: 12px;
+      padding: 2px 5px;
+      background: #ffffff;
+      color: #101418;
+      font-size: 10px;
       font-weight: 900;
       letter-spacing: 0;
     }
 
     .leaderboard .player {
-      color: var(--ui-yellow);
+      color: #111820;
       font-weight: 700;
     }
 
     .rank-row {
       display: grid;
-      grid-template-columns: 24px 1fr 42px 64px;
+      grid-template-columns: 24px 1fr 42px 58px;
       align-items: center;
-      min-height: 28px;
-      margin-top: 3px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.045);
-      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      min-height: 24px;
+      margin-top: 2px;
+      padding: 0 5px 0 0;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
     }
 
     .rank-position {
-      color: rgba(255, 255, 255, 0.78);
-      font-weight: 800;
+      align-self: stretch;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.94);
+      color: #111820;
+      font: 900 13px/1 var(--ui-mono);
     }
 
     .rank-name {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      padding-left: 8px;
+      font-weight: 900;
     }
 
     .rank-change {
@@ -132,16 +167,19 @@
 
     .rank-gap {
       text-align: right;
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 12px;
-      font-weight: 800;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 11px;
+      font-weight: 900;
       letter-spacing: 0;
       font-family: var(--ui-mono);
     }
 
     .rank-gap.leader {
-      color: var(--ui-yellow);
-      font-size: 10px;
+      color: #111820;
+      background: var(--ui-yellow);
+      padding: 2px 3px;
+      font-size: 9px;
+      text-align: center;
     }
 
     .rank-up {
@@ -162,6 +200,21 @@
       color: rgba(255, 255, 255, 0.34);
     }
 
+    .rank-row.player {
+      background: linear-gradient(90deg, var(--ui-yellow), #f6b93b);
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .rank-row.player .rank-position {
+      background: #111820;
+      color: var(--ui-yellow);
+    }
+
+    .rank-row.player .rank-gap,
+    .rank-row.player .rank-change {
+      color: #111820;
+    }
+
     .speedometer {
       position: fixed;
       right: 24px;
@@ -170,10 +223,12 @@
       height: 150px;
       display: grid;
       place-items: center;
-      border: 5px solid rgba(255, 216, 77, 0.92);
+      border: 4px solid rgba(255, 255, 255, 0.82);
       border-radius: 50%;
-      background: radial-gradient(circle at 50% 48%, rgba(34, 43, 52, 0.92) 0 42%, rgba(13, 18, 23, 0.96) 43% 100%);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32), inset 0 0 0 8px rgba(255, 255, 255, 0.06);
+      background:
+        radial-gradient(circle at 50% 52%, rgba(34, 47, 52, 0.96) 0 35%, rgba(13, 17, 20, 0.96) 36% 61%, transparent 62%),
+        var(--rpm-arc, conic-gradient(from -135deg, rgba(255, 255, 255, 0.12) 0 360deg));
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34), inset 0 0 0 9px rgba(0, 0, 0, 0.52);
       color: var(--ui-white);
       overflow: hidden;
       pointer-events: none;
@@ -184,8 +239,6 @@
       display: none;
     }
 
-    .speedometer::before,
-    .speedometer::after,
     .speedometer *::before,
     .speedometer *::after,
     .speed-center,
@@ -200,10 +253,32 @@
       box-shadow: none !important;
     }
 
+    .speedometer::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 16px rgba(9, 13, 16, 0.78);
+    }
+
+    .speedometer::after {
+      content: "RCB";
+      position: absolute;
+      top: 21px;
+      left: 50%;
+      padding: 2px 8px;
+      border-radius: 2px;
+      background: #ffffff;
+      color: #111820;
+      font: 900 10px/1 var(--ui-mono);
+      transform: translateX(-50%);
+    }
+
     .speed-readout {
       position: relative;
       text-align: center;
-      transform: translateY(-3px);
+      transform: translateY(10px);
       z-index: 1;
       font-family: var(--ui-mono);
     }
@@ -211,17 +286,18 @@
     .speed-value {
       display: block;
       color: var(--ui-yellow);
-      font-size: 40px;
-      font-weight: 800;
+      font-size: 44px;
+      font-weight: 900;
       line-height: 1;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.42);
     }
 
     .speed-unit {
       display: block;
       margin-top: 4px;
-      color: var(--ui-muted);
-      font-size: 12px;
-      font-weight: 700;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
       letter-spacing: 0;
     }
 
@@ -280,7 +356,7 @@
     .menu-panel::before {
       display: block;
       width: fit-content;
-      margin: -45px auto 16px;
+      margin: 0 auto 18px;
       padding: 7px 14px;
       border: 3px solid #101820;
       background: var(--ui-yellow);
@@ -351,6 +427,74 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
+    }
+
+    .controller-status {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .controller-dock {
+      position: absolute;
+      left: clamp(18px, 3vw, 34px);
+      bottom: clamp(18px, 3vw, 34px);
+      width: min(340px, calc(100vw - 36px));
+      padding: 12px;
+      border: 3px solid rgba(248, 251, 255, 0.22);
+      background: rgba(8, 12, 16, 0.72);
+      box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .controller-dock strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ui-yellow);
+      font: 900 12px var(--ui-mono);
+    }
+
+    .controller-readout {
+      min-width: 0;
+      padding: 9px 10px;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      background: rgba(8, 12, 16, 0.58);
+      color: rgba(248, 251, 255, 0.78);
+      font: 900 12px/1.35 var(--ui-mono);
+    }
+
+    .controller-name {
+      display: block;
+      color: var(--ui-white);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .controller-state {
+      display: block;
+      margin-top: 3px;
+      color: #ff8b83;
+    }
+
+    .controller-readout.connected {
+      border-color: rgba(78, 224, 131, 0.76);
+      box-shadow: inset 4px 0 0 var(--ui-green);
+    }
+
+    .controller-readout.connected .controller-state {
+      color: var(--ui-green);
+    }
+
+    .controller-readout.checking .controller-state {
+      color: var(--ui-yellow);
+    }
+
+    .controller-scan {
+      min-width: 76px;
+      min-height: 44px;
+      padding-inline: 10px;
     }
 
     .menu-button {
@@ -539,10 +683,11 @@
       right: 24px;
       top: 214px;
       min-width: 130px;
-      padding: 8px 12px;
-      border: 1px solid rgba(255, 216, 77, 0.42);
-      border-radius: 10px;
-      background: linear-gradient(180deg, rgba(18, 24, 32, 0.78), rgba(12, 17, 22, 0.68));
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 3px;
+      border-left: 4px solid var(--ui-yellow);
+      background: rgba(7, 10, 12, 0.86);
       color: var(--ui-white);
       font: 900 11px var(--ui-font);
       font-weight: 800;
@@ -559,29 +704,40 @@
 
     .race-timer span {
       color: var(--ui-yellow);
-      font-size: 20px;
+      font-size: 19px;
       font-family: var(--ui-mono);
     }
 
     .race-notice {
       position: fixed;
       left: 50%;
-      top: 92px;
-      min-width: 210px;
-      padding: 9px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.32);
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255, 97, 88, 0.94), rgba(240, 45, 34, 0.9));
-      color: var(--ui-white);
-      font-size: 18px;
+      top: 18px;
+      min-width: 188px;
+      padding: 5px 14px 6px;
+      border: 0;
+      border-radius: 2px;
+      background: #ffffff;
+      color: #090d10;
+      font-size: 13px;
       font-weight: 900;
       text-align: center;
       transform: translateX(-50%);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28), 0 0 0 4px rgba(255, 216, 77, 0.28);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25), inset 0 -3px 0 #111820;
       pointer-events: none;
       z-index: 4;
-      animation: raceNoticePulse 0.62s ease-out infinite alternate;
+      animation: raceNoticePulse 0.8s ease-out infinite alternate;
       font-family: var(--ui-font);
+      text-transform: uppercase;
+    }
+
+    .race-notice::before {
+      content: "RCB FLAG";
+      display: inline-block;
+      margin-right: 8px;
+      padding-right: 8px;
+      border-right: 2px solid #111820;
+      color: #111820;
+      font: 900 10px var(--ui-mono);
     }
 
     .race-notice.hidden {
@@ -594,7 +750,7 @@
       }
 
       to {
-        transform: translateX(-50%) scale(1.08);
+        transform: translateX(-50%) scale(1.04);
       }
     }
 
@@ -636,6 +792,38 @@
       display: none;
     }
 
+    .tutorial-overlay {
+      position: fixed;
+      display: none;
+      width: min(560px, calc(100vw - 36px));
+      min-height: 74px;
+      padding: 17px 18px 12px;
+      border: 3px solid var(--ui-yellow);
+      border-radius: 10px;
+      background: rgba(10, 16, 22, 0.9);
+      color: var(--ui-yellow);
+      text-align: center;
+      pointer-events: none;
+      z-index: 5;
+      box-shadow: var(--ui-shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .tutorial-overlay.visible {
+      display: block;
+    }
+
+    .tutorial-title {
+      font: 900 20px var(--ui-font);
+      line-height: 1.1;
+    }
+
+    .tutorial-subtitle {
+      margin-top: 8px;
+      color: rgba(248, 251, 255, 0.82);
+      font: 900 13px var(--ui-font);
+    }
+
     .autopilot-panel {
       position: fixed;
       left: 24px;
@@ -657,11 +845,25 @@
     }
 
     .autopilot-panel.collapsed {
-      width: 212px;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border: 2px solid rgba(93, 183, 255, 0.86);
+      border-radius: 50%;
+      background: rgba(7, 10, 12, 0.9);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
     }
 
-    .autopilot-panel.collapsed .autopilot-content {
+    .autopilot-panel.collapsed .autopilot-content,
+    .autopilot-panel.collapsed #autopilotLabel,
+    .autopilot-panel.collapsed #autopilotButton {
       display: none;
+    }
+
+    .autopilot-panel.collapsed .autopilot-row.header {
+      display: contents;
     }
 
     .pause-button {
@@ -753,6 +955,17 @@
       transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.16s ease, box-shadow 0.16s ease;
     }
 
+    .autopilot-panel.collapsed .autopilot-toggle {
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--ui-blue);
+      font: 900 24px/1 var(--ui-mono);
+    }
+
     .autopilot-button.active {
       border-color: var(--ui-yellow);
       background: var(--ui-yellow);
@@ -794,12 +1007,20 @@
       box-shadow: inset 4px 0 0 var(--ui-yellow);
     }
 
+    .result-list.stats .result-row {
+      grid-template-columns: 1fr 64px 48px;
+    }
+
     @media (max-width: 720px) {
       .leaderboard {
-        left: 12px;
-        top: 12px;
-        width: 226px;
-        font-size: 12px;
+        left: 10px;
+        top: 10px;
+        width: 214px;
+        font-size: 11px;
+      }
+
+      .rank-row {
+        grid-template-columns: 22px 1fr 34px 50px;
       }
 
       .track-preview {
@@ -827,7 +1048,8 @@
       }
 
       .autopilot-panel.collapsed {
-        width: 204px;
+        width: 48px;
+        height: 48px;
       }
 
       .speedometer {
@@ -842,9 +1064,9 @@
       }
 
       .race-notice {
-        top: 74px;
-        min-width: 190px;
-        font-size: 14px;
+        top: 8px;
+        min-width: 160px;
+        font-size: 11px;
       }
     }
 
@@ -864,6 +1086,10 @@
   <canvas id="game"></canvas>
   <canvas class="track-preview hidden" id="trackPreview"></canvas>
   <canvas class="full-map hidden" id="fullMap"></canvas>
+  <div class="tutorial-overlay" id="tutorialOverlay">
+    <div class="tutorial-title" id="tutorialTitle">新手引导：入弯前按住刹车，出弯时松开</div>
+    <div class="tutorial-subtitle" id="tutorialSubtitle">键盘备用：按住 Space / 松开 Space</div>
+  </div>
 
   <div class="leaderboard" id="leaderboard">
     <strong>排名</strong>
@@ -907,8 +1133,8 @@
   <div class="start-screen" id="startScreen">
     <div class="menu-panel">
       <div class="menu-view" id="mainMenu">
-      <h1 id="menuTitle">刹车漂移赛</h1>
-      <p id="menuSubtitle">按住 Space 连接弯心锚点，松开后沿切线甩出弯道。</p>
+      <h1 id="menuTitle">RCB Anchor Drift</h1>
+      <p id="menuSubtitle">入弯前按住刹车，出弯时松开。Space 可备用操作。</p>
 
       <div class="menu-section">
         <strong id="difficultyLabel">难度选择</strong>
@@ -982,6 +1208,16 @@
       </div>
       </div>
     </div>
+    <div class="controller-dock">
+      <strong id="controllerLabel">CircuitPython HID</strong>
+      <div class="controller-status">
+        <div class="controller-readout" id="controllerReadout">
+          <span class="controller-name" id="controllerName">CircuitPython HID</span>
+          <span class="controller-state" id="controllerState">未连接</span>
+        </div>
+        <button class="menu-button controller-scan" id="controllerScanButton" type="button">检测</button>
+      </div>
+    </div>
   </div>
 
   <div class="game-over" id="gameOver">
@@ -1025,6 +1261,9 @@
     const previewCtx = trackPreviewEl.getContext("2d");
     const fullMapEl = document.getElementById("fullMap");
     const fullMapCtx = fullMapEl.getContext("2d");
+    const tutorialOverlayEl = document.getElementById("tutorialOverlay");
+    const tutorialTitleEl = document.getElementById("tutorialTitle");
+    const tutorialSubtitleEl = document.getElementById("tutorialSubtitle");
     const gameOverEl = document.getElementById("gameOver");
     const leaderboardEl = document.getElementById("leaderboard");
     const speedometerEl = document.getElementById("speedometer");
@@ -1053,6 +1292,11 @@
     const menuSubtitleEl = document.getElementById("menuSubtitle");
     const difficultyLabelEl = document.getElementById("difficultyLabel");
     const trackLabelEl = document.getElementById("trackLabel");
+    const controllerLabelEl = document.getElementById("controllerLabel");
+    const controllerReadoutEl = document.getElementById("controllerReadout");
+    const controllerNameEl = document.getElementById("controllerName");
+    const controllerStateEl = document.getElementById("controllerState");
+    const controllerScanButtonEl = document.getElementById("controllerScanButton");
     const startButtonEl = document.getElementById("startButton");
     const raceButtonEl = document.getElementById("raceButton");
     const settingsButtonEl = document.getElementById("settingsButton");
@@ -1127,8 +1371,15 @@
       enabled: false
     };
 
+    const brakeController = {
+      targetName: "CircuitPython HID",
+      connected: false,
+      checking: false,
+      deviceName: ""
+    };
+
     const race = {
-      duration: 60,
+      duration: 45,
       finishLeadTime: 5,
       finishAheadDistance: 1500,
       elapsed: 0,
@@ -1136,6 +1387,20 @@
       finished: false,
       noticeTimer: 0,
       shownMilestones: new Set()
+    };
+
+    const expo = {
+      tutorialDuration: 10,
+      friendlyDuration: 15,
+      elapsed: 0,
+      tutorialActive: false,
+      tutorialComplete: false,
+      feedbackText: "",
+      feedbackTimer: 0,
+      combo: 0,
+      bestExitSpeed: 0,
+      maxSpeed: 0,
+      crashCount: 0
     };
 
     const practiceLap = {
@@ -1155,8 +1420,8 @@
     let selectedLanguage = "zh";
     const translations = {
       zh: {
-        menuTitle: "刹车漂移赛",
-        menuSubtitle: "按住 Space 连接弯心锚点，松开后沿切线甩出弯道。",
+        menuTitle: "RCB Anchor Drift",
+        menuSubtitle: "入弯前按住刹车，出弯时松开。Space 可备用操作。",
         difficulty: "难度选择",
         easy: "简单",
         normal: "普通",
@@ -1198,8 +1463,8 @@
         metersRemaining: "{meters}m 剩余"
       },
       en: {
-        menuTitle: "Brake Drift Race",
-        menuSubtitle: "Hold Space to hook the corner anchor, release to sling out of the turn.",
+        menuTitle: "RCB Anchor Drift",
+        menuSubtitle: "Hold the brake before the corner, release on exit. Space is the backup control.",
         difficulty: "Difficulty",
         easy: "Easy",
         normal: "Normal",
@@ -1326,8 +1591,15 @@
     };
     let cachedWorldTrackPoints = null;
     let cachedTrackMetrics = null;
+    let cachedCurbGeometry = null;
     let tracksideLogoPoseCache = new Map();
     let lastTime = performance.now();
+    let lastHudControlUpdateAt = 0;
+    let lastLeaderboardUpdateAt = 0;
+    let lastLeaderboardHtml = "";
+    let lastTrackPreviewDrawAt = 0;
+    let lastFullMapDrawAt = 0;
+    let lastSpeedometerText = "";
     let activeAnchorIndex = 0;
     let pacenoteHintState = { anchor: null, startedAt: 0, previousNotes: [] };
     let fixedStartProgress = 0;
@@ -1364,6 +1636,7 @@
       race.finished = false;
       race.noticeTimer = 0;
       race.shownMilestones = new Set();
+      resetExpoState();
       resetPracticeLapCounter();
       race.finishProgress = currentMode === "race" && selectedMap === "fixed" ? getFixedRaceFinishProgress() : null;
       resetAiOpponents();
@@ -1373,7 +1646,19 @@
       updateRaceNotice(0);
       camera.x = car.x;
       camera.y = car.y;
-      updateLeaderboardPanelF1();
+      updateLeaderboardPanelF1(true);
+    }
+
+    function resetExpoState() {
+      expo.elapsed = 0;
+      expo.tutorialActive = true;
+      expo.tutorialComplete = false;
+      expo.feedbackText = selectedLanguage === "zh" ? "先试第一个弯" : "Try the first corner";
+      expo.feedbackTimer = 2.2;
+      expo.combo = 0;
+      expo.bestExitSpeed = 0;
+      expo.maxSpeed = 0;
+      expo.crashCount = 0;
     }
 
     function resetGeneratedTrack() {
@@ -1458,6 +1743,7 @@
     function invalidateTrackGeometryCache() {
       cachedWorldTrackPoints = null;
       cachedTrackMetrics = null;
+      cachedCurbGeometry = null;
       tracksideLogoPoseCache.clear();
     }
 
@@ -1955,6 +2241,7 @@
       car.anchor = anchor;
       car.speed = Math.max(getPlayerBaseSpeed(), Math.hypot(car.vx, car.vy));
       car.visualAngle = car.angle;
+      showExpoFeedback(selectedLanguage === "zh" ? "保持刹车" : "Hold brake", 0.9);
     }
 
     function detachFromAnchor() {
@@ -1972,9 +2259,30 @@
       car.anchor = null;
       car.detachedFlash = 0.22;
       car.slideTimer = 0.78;
+      registerCornerExit(releaseSpeed);
+    }
+
+    function registerCornerExit(releaseSpeed) {
+      const displaySpeed = releaseSpeed * 0.38;
+      expo.bestExitSpeed = Math.max(expo.bestExitSpeed, displaySpeed);
+      expo.combo += 1;
+      expo.tutorialComplete = true;
+      expo.tutorialActive = false;
+
+      const perfect = displaySpeed >= 145 || expo.combo >= 3;
+      const text = selectedLanguage === "zh"
+        ? `${perfect ? "完美出弯" : "漂亮出弯"} x${expo.combo}`
+        : `${perfect ? "PERFECT EXIT" : "GOOD EXIT"} x${expo.combo}`;
+      showExpoFeedback(text, perfect ? 1.8 : 1.3);
+    }
+
+    function showExpoFeedback(text, duration = 1.2) {
+      expo.feedbackText = text;
+      expo.feedbackTimer = duration;
     }
 
     function update(dt) {
+      updateExpoState(dt);
       if (car.crashed) {
         ensureTrackAhead();
         updateDifficulty(dt);
@@ -2021,6 +2329,7 @@
       car.vx *= car.attached ? 0.998 : 0.999;
       car.vy *= car.attached ? 0.998 : 0.999;
       car.speed = Math.hypot(car.vx, car.vy);
+      expo.maxSpeed = Math.max(expo.maxSpeed, car.speed * 0.38);
       car.angle = Math.atan2(car.vy, car.vx);
 
       if (car.attached) {
@@ -2058,6 +2367,22 @@
 
       if (car.respawnTimer > 0) return;
       finishRespawn();
+    }
+
+    function updateExpoState(dt) {
+      if (!gameStarted || race.finished || gameOverEl.classList.contains("visible")) return;
+
+      expo.elapsed += dt;
+      expo.feedbackTimer = Math.max(0, expo.feedbackTimer - dt);
+      if (expo.tutorialActive && (expo.tutorialComplete || expo.elapsed >= expo.tutorialDuration)) {
+        expo.tutorialActive = false;
+      }
+    }
+
+    function getExpoEaseScale() {
+      if (!gameStarted) return 1;
+      if (expo.elapsed >= expo.friendlyDuration) return 1;
+      return 0.82 + 0.18 * (expo.elapsed / expo.friendlyDuration);
     }
 
     function resetPracticeLapCounter() {
@@ -2168,8 +2493,16 @@
       const playerPosition = playerIndex + 1;
 
       resultTitleEl.textContent = `P${playerPosition} ${t("finish")}`;
+      const bestExitLabel = selectedLanguage === "zh" ? "最佳出弯" : "Best Exit";
+      const topSpeedLabel = selectedLanguage === "zh" ? "最高速度" : "Top Speed";
+      const crashCountLabel = selectedLanguage === "zh" ? "撞墙次数" : "Crashes";
       resultBodyEl.innerHTML = `
         <div>${t("finished", { position: formatOrdinalText(playerPosition), time: race.elapsed.toFixed(1) })}</div>
+        <div class="result-list stats">
+          <div class="result-row player"><span>${bestExitLabel}</span><span>${Math.round(expo.bestExitSpeed)}</span><span>km/h</span></div>
+          <div class="result-row"><span>${topSpeedLabel}</span><span>${Math.round(expo.maxSpeed)}</span><span>km/h</span></div>
+          <div class="result-row"><span>${crashCountLabel}</span><span>${expo.crashCount}</span><span></span></div>
+        </div>
         <div class="result-list">
           ${entries
             .map((entry, index) => {
@@ -2209,7 +2542,8 @@
 
     function updateDifficulty(dt) {
       car.runTime += dt;
-      car.difficulty = Math.min(2.35, 1 + car.runTime / 75);
+      const friendlyScale = getExpoEaseScale();
+      car.difficulty = Math.min(2.35, 1 + car.runTime / 75) * friendlyScale;
       car.maxFreeSpeed = (370 + (car.difficulty - 1) * 190) * getPlayerSpeedScale();
     }
 
@@ -2445,7 +2779,8 @@
         const difficultyBonus = (car.difficulty - 1) * 170;
         const rubberBand = opponent.progress < playerProgress - 520 ? 120 : opponent.progress > playerProgress + 640 ? -18 : 0;
         const cornerBoost = Math.abs(Math.sin(opponent.progress * 0.004)) * 18;
-        const targetSpeed = (opponent.targetSpeed + difficultyBonus + rubberBand + cornerBoost) * aiStrength + Math.sin(car.runTime * 0.8 + opponent.lanePhase) * 14;
+        const expoAiScale = 0.86 + (getExpoEaseScale() - 0.82) * 0.78;
+        const targetSpeed = ((opponent.targetSpeed + difficultyBonus + rubberBand + cornerBoost) * aiStrength + Math.sin(car.runTime * 0.8 + opponent.lanePhase) * 14) * expoAiScale;
         opponent.speed += (targetSpeed - opponent.speed) * Math.min(1, dt * 2.5);
         opponent.progress += opponent.speed * dt;
         opponent.collisionOffsetTarget *= Math.max(0, 1 - dt * vehicleCollision.aiAvoidanceDecay);
@@ -2619,7 +2954,10 @@
       });
     }
 
-    function updateLeaderboardPanelF1() {
+    function updateLeaderboardPanelF1(force = false) {
+      const now = performance.now();
+      if (!force && now - lastLeaderboardUpdateAt < 120) return;
+
       const entries = [
         { id: "YOU", name: t("you"), progress: getPlayerRaceProgress(), player: true },
         ...aiOpponents.map((opponent) => ({
@@ -2629,7 +2967,6 @@
           player: false
         }))
       ].sort((a, b) => b.progress - a.progress);
-      const now = performance.now();
       const leaderProgress = entries[0]?.progress || 0;
 
       entries.forEach((entry, index) => {
@@ -2648,7 +2985,7 @@
         ? `<div class="rank-header"><span>${t("rank")}</span><span class="lap-counter">${t("lap")} ${practiceLap.completed + 1}</span></div>`
         : `<strong>${t("rank")}</strong>`;
 
-      leaderboardEl.innerHTML = `${headerHtml}${entries
+      const nextHtml = `${headerHtml}${entries
         .map((entry, index) => {
           const position = index + 1;
           const effect = rankChangeEffects.get(entry.id);
@@ -2668,6 +3005,12 @@
           </div>`;
         })
         .join("")}`;
+
+      if (nextHtml !== lastLeaderboardHtml) {
+        leaderboardEl.innerHTML = nextHtml;
+        lastLeaderboardHtml = nextHtml;
+      }
+      lastLeaderboardUpdateAt = now;
 
       lastRankPositions = new Map(entries.map((entry, index) => [entry.id, index + 1]));
       rankChangeEffects.forEach((effect, id) => {
@@ -2697,6 +3040,7 @@
       menuSubtitleEl.textContent = t("menuSubtitle");
       difficultyLabelEl.textContent = t("difficulty");
       trackLabelEl.textContent = t("track");
+      controllerLabelEl.textContent = brakeController.targetName;
       startButtonEl.textContent = t("practiceMode");
       raceButtonEl.textContent = t("raceMode");
       settingsButtonEl.textContent = t("settings");
@@ -2728,16 +3072,85 @@
 
       updateRaceTimer();
       updateRaceNotice(0);
-      if (trackSegments.length) updateLeaderboardPanelF1();
+      if (trackSegments.length) updateLeaderboardPanelF1(true);
       updateAutopilotDisplay();
       updateAiSpeedSettingsDisplay();
       updateCenteringStrengthDisplay();
       updatePauseDisplay();
+      updateControllerStatusDisplay();
     }
 
     function updatePlayerSpeedDisplay() {
       playerSpeedScale = Number(playerSpeedEl.value);
       playerSpeedValueEl.textContent = `${Math.round(playerSpeedScale * 100)}%`;
+    }
+
+    function normalizeControllerName(name) {
+      return String(name || "").trim().toUpperCase();
+    }
+
+    function isTargetControllerName(name) {
+      return normalizeControllerName(name).includes(normalizeControllerName(brakeController.targetName));
+    }
+
+    function getControllerText(kind) {
+      const zh = selectedLanguage === "zh";
+      const text = {
+        connected: zh ? "已连接" : "Connected",
+        disconnected: zh ? "未连接" : "Disconnected",
+        checking: zh ? "检测中..." : "Checking...",
+        scan: zh ? "检测" : "Scan",
+        unsupported: zh ? "未检测到，或浏览器未授权" : "Not found, or browser permission is missing"
+      };
+      return text[kind];
+    }
+
+    function updateControllerStatusDisplay() {
+      controllerNameEl.textContent = brakeController.deviceName || brakeController.targetName;
+      controllerReadoutEl.classList.toggle("connected", brakeController.connected);
+      controllerReadoutEl.classList.toggle("checking", brakeController.checking);
+      controllerStateEl.textContent = brakeController.checking
+        ? getControllerText("checking")
+        : brakeController.connected
+          ? getControllerText("connected")
+          : getControllerText("unsupported");
+      controllerScanButtonEl.textContent = getControllerText("scan");
+    }
+
+    async function detectBrakeController(options = {}) {
+      const request = Boolean(options.request);
+      brakeController.checking = true;
+      updateControllerStatusDisplay();
+
+      let foundName = "";
+      const gamepads = typeof navigator.getGamepads === "function" ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+      const gamepad = gamepads.find((pad) => isTargetControllerName(pad.id));
+      if (gamepad) foundName = gamepad.id;
+
+      if (!foundName && navigator.hid && typeof navigator.hid.getDevices === "function") {
+        try {
+          const devices = await navigator.hid.getDevices();
+          const device = devices.find((item) => isTargetControllerName(item.productName));
+          if (device) foundName = device.productName;
+        } catch (error) {
+          // Permission or browser support can fail silently for this status-only check.
+        }
+      }
+
+      if (!foundName && request && navigator.hid && typeof navigator.hid.requestDevice === "function") {
+        try {
+          const devices = await navigator.hid.requestDevice({ filters: [] });
+          const device = devices.find((item) => isTargetControllerName(item.productName)) || devices[0];
+          if (device && isTargetControllerName(device.productName)) foundName = device.productName;
+        } catch (error) {
+          // User cancelled or browser blocked the picker.
+        }
+      }
+
+      brakeController.connected = Boolean(foundName);
+      brakeController.deviceName = foundName || brakeController.targetName;
+      brakeController.checking = false;
+      updateControllerStatusDisplay();
     }
 
     function loadCenteringStrengthSetting() {
@@ -2832,7 +3245,8 @@
       autopilotButtonEl.textContent = autopilot.enabled ? t("on") : t("off");
       autopilotButtonEl.classList.toggle("active", autopilot.enabled);
       autopilotPanelEl.classList.toggle("collapsed", autopilotCollapsed);
-      autopilotCollapseButtonEl.textContent = autopilotCollapsed ? "+" : "-";
+      autopilotCollapseButtonEl.textContent = autopilotCollapsed ? "A" : "-";
+      autopilotCollapseButtonEl.setAttribute("aria-label", autopilotCollapsed ? "Open autopilot controls" : "Collapse autopilot controls");
       autopilotCollapseButtonEl.setAttribute("aria-expanded", String(!autopilotCollapsed));
       autopilotContentEl.setAttribute("aria-hidden", String(autopilotCollapsed));
 
@@ -2877,9 +3291,35 @@
 
       const targetSpeed = Math.max(0, car.speed * 0.38);
       displayedSpeed += (targetSpeed - displayedSpeed) * 0.08;
-      speedValueEl.textContent = String(Math.round(displayedSpeed));
-      updateAutopilotDisplay();
-      updatePauseDisplay();
+      speedometerEl.style.setProperty("--rpm-arc", getRpmArc(displayedSpeed));
+      const speedText = String(Math.round(displayedSpeed));
+      if (speedText !== lastSpeedometerText) {
+        speedValueEl.textContent = speedText;
+        lastSpeedometerText = speedText;
+      }
+      const now = performance.now();
+      if (now - lastHudControlUpdateAt >= 120) {
+        updateAutopilotDisplay();
+        updatePauseDisplay();
+        lastHudControlUpdateAt = now;
+      }
+    }
+
+    function getRpmArc(speed) {
+      const sweep = clamp(speed / 220, 0, 1) * 240;
+      const parts = [];
+      const greenEnd = Math.min(sweep, 90);
+      if (greenEnd > 0) parts.push(`#49d27e 0deg ${greenEnd.toFixed(1)}deg`);
+      if (sweep > 90) {
+        const yellowEnd = Math.min(sweep, 178);
+        parts.push(`#ffd84d 90deg ${yellowEnd.toFixed(1)}deg`);
+      }
+      if (sweep > 178) {
+        const redEnd = Math.min(sweep, 240);
+        parts.push(`#ff4d42 178deg ${redEnd.toFixed(1)}deg`);
+      }
+      parts.push(`rgba(255, 255, 255, 0.13) ${sweep.toFixed(1)}deg 360deg`);
+      return `conic-gradient(from -135deg, ${parts.join(", ")})`;
     }
 
     function selectDifficulty(difficulty) {
@@ -2927,9 +3367,14 @@
     }
 
     function startRespawnPenalty() {
-      const target = nearestTrackCenterInfo(car.x, car.y);
+      const target = expo.tutorialActive ? getTutorialRespawnTarget() : nearestTrackCenterInfo(car.x, car.y);
+      expo.crashCount += 1;
+      expo.combo = 0;
+      showExpoFeedback(expo.tutorialActive
+        ? (selectedLanguage === "zh" ? "再试一次" : "Try again")
+        : (selectedLanguage === "zh" ? "继续挑战" : "Keep going"), 1.3);
       car.crashed = true;
-      car.respawnTimer = 0.5;
+      car.respawnTimer = expo.tutorialActive ? 0.25 : 0.5;
       car.respawnTarget = target;
       car.attached = false;
       car.anchor = null;
@@ -2943,6 +3388,18 @@
       resultTitleEl.textContent = t("crashed");
       resultBodyEl.textContent = t("crashBody");
       updateRespawnBanner();
+    }
+
+    function getTutorialRespawnTarget() {
+      const progress = Math.max(0, getTrackProgressAt(car.x, car.y) - 240);
+      const point = getTrackPointAtProgress(progress);
+      return {
+        closest: { x: point.x, y: point.y },
+        distance: 0,
+        tangent: point.tangent,
+        normal: point.normal,
+        progress
+      };
     }
 
     function finishRespawn() {
@@ -3019,6 +3476,7 @@
       drawAiOpponents();
       drawCar();
       drawTurnHint();
+      drawExpoFeedbackOverlay();
       drawTrackPreview();
       drawFullMap();
     }
@@ -3031,7 +3489,7 @@
       ctx.globalAlpha = 0.28;
       ctx.strokeStyle = "#84d37f";
       ctx.lineWidth = 2;
-      for (let i = 0; i < 80; i += 1) {
+      for (let i = 0; i < 42; i += 1) {
         const p = screenToWorld((i * 97) % width, (i * 61) % height);
         const s = worldToScreen(p.x + Math.sin(i) * 20, p.y + (camera.y * 0.18) % 120);
         ctx.beginPath();
@@ -3195,7 +3653,12 @@
       const cssSize = 176;
       const dpr = window.devicePixelRatio || 1;
       const pixelSize = Math.floor(cssSize * dpr);
-      if (trackPreviewEl.width !== pixelSize || trackPreviewEl.height !== pixelSize) {
+      const needsResize = trackPreviewEl.width !== pixelSize || trackPreviewEl.height !== pixelSize;
+      const now = performance.now();
+      if (!needsResize && now - lastTrackPreviewDrawAt < 80) return;
+      lastTrackPreviewDrawAt = now;
+
+      if (needsResize) {
         trackPreviewEl.width = pixelSize;
         trackPreviewEl.height = pixelSize;
       }
@@ -3273,7 +3736,12 @@
       const dpr = window.devicePixelRatio || 1;
       const pixelWidth = Math.floor(cssWidth * dpr);
       const pixelHeight = Math.floor(cssHeight * dpr);
-      if (fullMapEl.width !== pixelWidth || fullMapEl.height !== pixelHeight) {
+      const needsResize = fullMapEl.width !== pixelWidth || fullMapEl.height !== pixelHeight;
+      const now = performance.now();
+      if (!needsResize && now - lastFullMapDrawAt < 120) return;
+      lastFullMapDrawAt = now;
+
+      if (needsResize) {
         fullMapEl.width = pixelWidth;
         fullMapEl.height = pixelHeight;
       }
@@ -3667,12 +4135,8 @@
     }
 
     function drawCurbs() {
-      const worldPoints = buildWorldTrackPoints();
-      const edgeOffset = road.width / 2 - 14;
       const curbWidth = 18;
-      const closed = selectedMap === "fixed";
-      const leftCurb = buildOffsetTrackPoints(worldPoints, edgeOffset, closed);
-      const rightCurb = buildOffsetTrackPoints(worldPoints, -edgeOffset, closed);
+      const geometry = getCurbGeometry();
 
       ctx.save();
       ctx.lineCap = "round";
@@ -3680,14 +4144,33 @@
       ctx.lineWidth = scaled(curbWidth);
 
       ctx.strokeStyle = "#f5f0e8";
-      drawWorldPolyline(leftCurb, closed);
-      drawWorldPolyline(rightCurb, closed);
+      drawWorldPolyline(geometry.left, geometry.closed);
+      drawWorldPolyline(geometry.right, geometry.closed);
 
       ctx.lineCap = "square";
-      drawStripedCurb(leftCurb, closed);
-      drawStripedCurb(rightCurb, closed);
+      drawCurbStripeSegments(geometry.leftStripes);
+      drawCurbStripeSegments(geometry.rightStripes);
 
       ctx.restore();
+    }
+
+    function getCurbGeometry() {
+      if (cachedCurbGeometry) return cachedCurbGeometry;
+
+      const worldPoints = buildWorldTrackPoints();
+      const edgeOffset = road.width / 2 - 14;
+      const closed = selectedMap === "fixed";
+      const left = buildOffsetTrackPoints(worldPoints, edgeOffset, closed);
+      const right = buildOffsetTrackPoints(worldPoints, -edgeOffset, closed);
+
+      cachedCurbGeometry = {
+        closed,
+        left,
+        right,
+        leftStripes: buildCurbStripeSegments(left, closed),
+        rightStripes: buildCurbStripeSegments(right, closed)
+      };
+      return cachedCurbGeometry;
     }
 
     function drawWorldPolyline(points, closed = false) {
@@ -3722,6 +4205,60 @@
           y: point.y + Math.sin(angle) * offset
         };
       });
+    }
+
+    function buildCurbStripeSegments(points, closed = false) {
+      const stripeLength = 38;
+      const maxSegmentLength = closed ? road.width * 0.95 : Infinity;
+      const stripes = [];
+      let traveled = 0;
+
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const a = points[i];
+        const b = points[i + 1];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const length = Math.hypot(dx, dy);
+        if (length < 1 || length > maxSegmentLength) {
+          traveled = 0;
+          continue;
+        }
+
+        const tangentX = dx / length;
+        const tangentY = dy / length;
+        const segmentStart = traveled;
+        const segmentEnd = traveled + length;
+        let stripeStart = Math.floor(segmentStart / stripeLength) * stripeLength;
+
+        while (stripeStart < segmentEnd) {
+          const stripeEnd = stripeStart + stripeLength;
+          const start = Math.max(segmentStart, stripeStart);
+          const end = Math.min(segmentEnd, stripeEnd);
+          const stripeIndex = Math.floor(stripeStart / stripeLength);
+          const localStart = start - segmentStart;
+          const localEnd = end - segmentStart;
+
+          stripes.push({
+            ax: a.x + tangentX * localStart,
+            ay: a.y + tangentY * localStart,
+            bx: a.x + tangentX * localEnd,
+            by: a.y + tangentY * localEnd,
+            color: stripeIndex % 2 === 0 ? "#f5f0e8" : "#d94132"
+          });
+
+          stripeStart += stripeLength;
+        }
+
+        traveled = segmentEnd;
+      }
+
+      return stripes;
+    }
+
+    function drawCurbStripeSegments(stripes) {
+      for (const stripe of stripes) {
+        drawCurbStripe(stripe.ax, stripe.ay, stripe.bx, stripe.by, stripe.color);
+      }
     }
 
     function drawStripedCurb(points, closed = false) {
@@ -3836,7 +4373,7 @@
       if (!notes.length) return;
 
       const alpha = 1;
-      const scale = width < 720 ? 0.95 : 1.18;
+      const scale = width < 720 ? 0.9 : 1.08;
       const now = performance.now();
       if (pacenoteHintState.anchor !== notes[0].anchor) {
         pacenoteHintState = {
@@ -3847,11 +4384,11 @@
       }
       const transition = clamp((now - pacenoteHintState.startedAt) / 360, 0, 1);
       const ease = transition < 0.5 ? 4 * transition * transition * transition : 1 - Math.pow(-2 * transition + 2, 3) / 2;
-      const bigW = 86 * scale;
-      const bigH = 76 * scale;
-      const smallW = 62 * scale;
-      const smallH = 58 * scale;
-      const gap = 10 * scale;
+      const bigW = 168 * scale;
+      const bigH = 118 * scale;
+      const smallW = 82 * scale;
+      const smallH = 72 * scale;
+      const gap = 12 * scale;
       const totalW = bigW + smallW * Math.max(0, notes.length - 1) + gap * (notes.length - 1);
       const x = width / 2 - totalW / 2;
       const y = 24;
@@ -3891,12 +4428,121 @@
         drawWrcTurnCard(animated.x, animated.y, animated.w, animated.h, note.side >= 0 ? 1 : -1, scale, note, index, alpha);
       });
 
+      drawCornerActionBanner(width / 2, y + bigH + 12 * scale, Math.min(520, width - 34), 44 * scale, hint, scale);
+
       ctx.shadowColor = "transparent";
       ctx.restore();
 
       if (transition >= 1) {
         pacenoteHintState.previousNotes = notes;
       }
+    }
+
+    function getCornerActionStage(hint) {
+      const meters = Math.max(0, Math.round(hint.distance / 10));
+      if (car.attached) {
+        return {
+          label: selectedLanguage === "zh" ? "松开刹车" : "RELEASE BRAKE",
+          detail: selectedLanguage === "zh" ? "车头对准出弯线就松开" : "Release when lined up",
+          color: "#4ee083"
+        };
+      }
+
+      if (hint.distance <= rope.maxReach * 0.82) {
+        return {
+          label: selectedLanguage === "zh" ? "按住刹车" : "HOLD BRAKE",
+          detail: selectedLanguage === "zh" ? "连接弯心锚点" : "Hook the corner anchor",
+          color: "#ffd84d"
+        };
+      }
+
+      return {
+        label: selectedLanguage === "zh" ? "准备入弯" : "GET READY",
+        detail: selectedLanguage === "zh" ? `${meters}m 后按住刹车` : `Brake in ${meters}m`,
+        color: "#5db7ff"
+      };
+    }
+
+    function drawCornerActionBanner(cx, y, w, h, hint, scale) {
+      const stage = getCornerActionStage(hint);
+      const x = cx - w / 2;
+      const pulse = 1 + Math.sin(performance.now() * 0.011) * 0.025;
+
+      ctx.save();
+      ctx.translate(cx, y + h / 2);
+      ctx.scale(pulse, pulse);
+      ctx.translate(-cx, -(y + h / 2));
+      ctx.fillStyle = "rgba(10, 16, 22, 0.88)";
+      ctx.strokeStyle = stage.color;
+      ctx.lineWidth = 3 * scale;
+      roundRect(x, y, w, h, 8 * scale);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = stage.color;
+      ctx.font = `900 ${Math.round(20 * scale)}px Arial, "Microsoft YaHei", sans-serif`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(stage.label, x + 18 * scale, y + h / 2);
+
+      ctx.fillStyle = "rgba(248, 251, 255, 0.88)";
+      ctx.font = `900 ${Math.round(13 * scale)}px Arial, "Microsoft YaHei", sans-serif`;
+      ctx.textAlign = "right";
+      ctx.fillText(stage.detail, x + w - 18 * scale, y + h / 2);
+      ctx.restore();
+    }
+
+    function drawExpoFeedbackOverlay() {
+      if (!gameStarted || gameOverEl.classList.contains("visible")) {
+        tutorialOverlayEl.classList.remove("visible");
+        return;
+      }
+
+      if (expo.tutorialActive) {
+        const w = Math.min(560, window.innerWidth - 36);
+        const h = 74;
+        let x = window.innerWidth / 2 - w / 2;
+        const fullMapTop = selectedMap === "fixed" ? window.innerHeight - 10 - 178 : window.innerHeight - 116;
+        let y = selectedMap === "fixed"
+          ? fullMapTop + (178 - h) / 2
+          : window.innerHeight - 116;
+        const carScreen = worldToScreen(car.x, car.y);
+        const overlapsCar = (rectX, rectY) => (
+          carScreen.x > rectX - 92 &&
+          carScreen.x < rectX + w + 92 &&
+          carScreen.y > rectY - 76 &&
+          carScreen.y < rectY + h + 76
+        );
+        if (overlapsCar(x, y)) {
+          y = clamp(fullMapTop - h - 14, 150, window.innerHeight - h - 24);
+        }
+        if (overlapsCar(x, y)) {
+          x = carScreen.x < window.innerWidth / 2 ? window.innerWidth - w - 18 : 18;
+          y = clamp(window.innerHeight - 116, 150, window.innerHeight - h - 24);
+        }
+        tutorialTitleEl.textContent = selectedLanguage === "zh" ? "新手引导：入弯前按住刹车，出弯时松开" : "Tutorial: hold brake before the corner, release on exit";
+        tutorialSubtitleEl.textContent = selectedLanguage === "zh" ? "键盘备用：按住 Space / 松开 Space" : "Keyboard backup: hold Space / release Space";
+        tutorialOverlayEl.style.left = `${x}px`;
+        tutorialOverlayEl.style.top = `${y}px`;
+        tutorialOverlayEl.style.width = `${w}px`;
+        tutorialOverlayEl.classList.add("visible");
+      } else {
+        tutorialOverlayEl.classList.remove("visible");
+      }
+
+      if (expo.feedbackTimer <= 0 || !expo.feedbackText) return;
+      const alpha = Math.min(1, expo.feedbackTimer / 0.35);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#ffd84d";
+      ctx.strokeStyle = "rgba(16, 24, 32, 0.92)";
+      ctx.lineWidth = 7;
+      ctx.font = "900 42px Arial, Microsoft YaHei, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.strokeText(expo.feedbackText, window.innerWidth / 2, window.innerHeight * 0.38);
+      ctx.fillText(expo.feedbackText, window.innerWidth / 2, window.innerHeight * 0.38);
+      ctx.restore();
     }
 
     function buildPacenoteSlots(x, y, count, bigW, bigH, smallW, smallH, gap) {
@@ -3939,13 +4585,16 @@
         const side = offset === 0 ? currentHint.side : getAnchorApproachSide(anchor);
         const degrees = Math.round(turnAbs * 180 / Math.PI);
         const distance = offset === 0 ? currentHint.distance : getForwardAnchorDistance(anchor, currentHint.anchor);
+        const distanceMeters = Math.max(0, Math.round(distance / 10));
         notes.push({
           anchor,
           side,
           degrees,
+          distance,
+          distanceMeters,
           progress: anchor.progress ?? getTrackProgressAtPoint(anchor.x, anchor.y),
           turnNumber: anchor.turnNumber || rawIndex + 1,
-          distanceLabel: offset === 0 && distance <= rope.maxReach ? "NOW" : formatPacenoteDistance(distance),
+          distanceLabel: offset === 0 && distance <= rope.maxReach ? "NOW" : `${distanceMeters}m`,
         });
       }
 
@@ -4011,17 +4660,33 @@
       ctx.globalAlpha *= opacity;
       const radius = 5 * scale;
       roundRect(x, y, w, h, radius);
-      const colors = ["#c99636", "#95a640", "#9f6434"];
+      const colors = ["#f3c735", "#5f6f42", "#51442d"];
       ctx.fillStyle = colors[index] || "#96783b";
       ctx.fill();
-      ctx.strokeStyle = index === 0 ? "rgba(255, 255, 255, 0.62)" : "rgba(255, 255, 255, 0.18)";
-      ctx.lineWidth = index === 0 ? 2 * scale : 1 * scale;
+      ctx.strokeStyle = index === 0 ? "rgba(255, 255, 255, 0.92)" : "rgba(255, 255, 255, 0.24)";
+      ctx.lineWidth = index === 0 ? 3 * scale : 1.5 * scale;
       ctx.stroke();
 
       drawPacenoteTrackPreview(note, x, y, w, h, scale, index);
 
-      ctx.fillStyle = "#f9f7e8";
-      ctx.font = `900 ${Math.round((index === 0 ? 17 : 13) * scale)}px Arial, sans-serif`;
+      if (index === 0) {
+        ctx.fillStyle = "rgba(16, 24, 30, 0.92)";
+        roundRect(x + 8 * scale, y + 8 * scale, 50 * scale, 34 * scale, 4 * scale);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `900 ${Math.round(30 * scale)}px Arial, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(side >= 0 ? "→" : "←", x + 33 * scale, y + 25 * scale);
+
+        ctx.fillStyle = "#101820";
+        ctx.font = `900 ${Math.round(16 * scale)}px Arial, sans-serif`;
+        ctx.textAlign = "right";
+        ctx.fillText(note.distanceLabel, x + w - 10 * scale, y + 24 * scale);
+      }
+
+      ctx.fillStyle = index === 0 ? "#101820" : "#f9f7e8";
+      ctx.font = `900 ${Math.round((index === 0 ? 22 : 13) * scale)}px Arial, sans-serif`;
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       ctx.fillText(String(note.turnNumber), x + w - 7 * scale, y + h - (index === 0 ? 10 : 8) * scale);
@@ -4529,6 +5194,7 @@
       }
       updateAutopilotDisplay();
     });
+    controllerScanButtonEl.addEventListener("click", () => detectBrakeController({ request: true }));
     startButtonEl.addEventListener("click", () => startGame("endless"));
     raceButtonEl.addEventListener("click", () => startGame("race"));
     settingsButtonEl.addEventListener("click", showSettingsMenu);
@@ -4545,6 +5211,13 @@
       button.addEventListener("click", () => setLanguage(button.dataset.language));
     });
 
+    window.addEventListener("gamepadconnected", () => detectBrakeController());
+    window.addEventListener("gamepaddisconnected", () => detectBrakeController());
+    if (navigator.hid) {
+      navigator.hid.addEventListener("connect", () => detectBrakeController());
+      navigator.hid.addEventListener("disconnect", () => detectBrakeController());
+    }
+
     window.addEventListener("pageshow", () => {
       loadAiSpeedSettings();
       loadCenteringStrengthSetting();
@@ -4555,6 +5228,7 @@
       updateCenteringStrengthDisplay();
       updateAiSpeedSettingsDisplay();
       updateAutopilotDisplay();
+      detectBrakeController();
     });
 
     function isUiControl(target) {
