@@ -1393,7 +1393,6 @@
     const trackPreviewEl = document.getElementById("trackPreview");
     const previewCtx = trackPreviewEl.getContext("2d");
     const fullMapEl = document.getElementById("fullMap");
-    const fullMapCtx = fullMapEl.getContext("2d");
     const tutorialOverlayEl = document.getElementById("tutorialOverlay");
     const tutorialTitleEl = document.getElementById("tutorialTitle");
     const tutorialSubtitleEl = document.getElementById("tutorialSubtitle");
@@ -1479,7 +1478,7 @@
     };
 
     const view = {
-      zoom: 1.2
+      zoom: 0.95
     };
 
     const road = {
@@ -1745,7 +1744,6 @@
     let lastLeaderboardUpdateAt = 0;
     let lastLeaderboardHtml = "";
     let lastTrackPreviewDrawAt = 0;
-    let lastFullMapDrawAt = 0;
     let lastSpeedometerText = "";
     let activeAnchorIndex = 0;
     let pacenoteHintState = { anchor: null, startedAt: 0, previousNotes: [] };
@@ -3967,22 +3965,42 @@
       previewCtx.fillStyle = "rgba(28, 37, 42, 0.92)";
       previewCtx.fillRect(0, 0, cssSize, cssSize);
 
-      const mapPoint = (worldPoint) => {
-        const screen = worldToScreen(worldPoint.x, worldPoint.y);
-        return {
-          x: (screen.x / window.innerWidth) * cssSize,
-          y: (screen.y / window.innerHeight) * cssSize
+      const points = selectedMap === "fixed" ? buildWorldTrackPoints() : buildVisibleWorldTrackPoints();
+      if (points.length > 1) {
+        const bounds = getPointBounds(points);
+        const padding = selectedMap === "fixed" ? 18 : 8;
+        const mapScale = selectedMap === "fixed"
+          ? Math.min(
+            (cssSize - padding * 2) / Math.max(1, bounds.maxX - bounds.minX),
+            (cssSize - padding * 2) / Math.max(1, bounds.maxY - bounds.minY)
+          )
+          : null;
+        const offsetX = selectedMap === "fixed"
+          ? (cssSize - (bounds.maxX - bounds.minX) * mapScale) / 2
+          : 0;
+        const offsetY = selectedMap === "fixed"
+          ? (cssSize - (bounds.maxY - bounds.minY) * mapScale) / 2
+          : 0;
+        const mapPoint = (worldPoint) => {
+          if (selectedMap === "fixed") {
+            return {
+              x: offsetX + (worldPoint.x - bounds.minX) * mapScale,
+              y: offsetY + (worldPoint.y - bounds.minY) * mapScale
+            };
+          }
+          const screen = worldToScreen(worldPoint.x, worldPoint.y);
+          return {
+            x: (screen.x / window.innerWidth) * cssSize,
+            y: (screen.y / window.innerHeight) * cssSize
+          };
         };
-      };
 
-      const visiblePoints = buildVisibleWorldTrackPoints();
-      if (visiblePoints.length > 1) {
         previewCtx.lineCap = "round";
         previewCtx.lineJoin = "round";
         previewCtx.strokeStyle = "rgba(238, 243, 244, 0.95)";
-        previewCtx.lineWidth = 14;
+        previewCtx.lineWidth = selectedMap === "fixed" ? 8 : 14;
         previewCtx.beginPath();
-        visiblePoints.forEach((point, index) => {
+        points.forEach((point, index) => {
           const mapped = mapPoint(point);
           if (index === 0) previewCtx.moveTo(mapped.x, mapped.y);
           else previewCtx.lineTo(mapped.x, mapped.y);
@@ -3990,97 +4008,35 @@
         previewCtx.stroke();
 
         previewCtx.strokeStyle = "rgba(58, 68, 74, 0.95)";
-        previewCtx.lineWidth = 9;
+        previewCtx.lineWidth = selectedMap === "fixed" ? 5 : 9;
         previewCtx.stroke();
-      }
 
-      drawPreviewDot(car.x, car.y, "#f2c12f", 5.8);
-      aiOpponents.forEach((opponent) => {
-        drawPreviewDot(opponent.x, opponent.y, opponent.color, 4.7);
-      });
+        drawPreviewDot(mapPoint({ x: car.x, y: car.y }), "#f2c12f", selectedMap === "fixed" ? 5 : 5.8);
+        aiOpponents.forEach((opponent) => {
+          drawPreviewDot(mapPoint({ x: opponent.x, y: opponent.y }), opponent.color, selectedMap === "fixed" ? 3.8 : 4.7);
+        });
+      }
 
       previewCtx.restore();
     }
 
-    function drawPreviewDot(x, y, color, radius) {
-      const screen = worldToScreen(x, y);
-      if (screen.x < -40 || screen.x > window.innerWidth + 40 || screen.y < -40 || screen.y > window.innerHeight + 40) return;
-
+    function drawPreviewDot(point, color, radius) {
       const size = 176;
-      const px = (screen.x / window.innerWidth) * size;
-      const py = (screen.y / window.innerHeight) * size;
+      if (point.x < -12 || point.x > size + 12 || point.y < -12 || point.y > size + 12) return;
+
       previewCtx.save();
       previewCtx.fillStyle = color;
       previewCtx.strokeStyle = "#11181b";
       previewCtx.lineWidth = 2;
       previewCtx.beginPath();
-      previewCtx.arc(px, py, radius, 0, Math.PI * 2);
+      previewCtx.arc(point.x, point.y, radius, 0, Math.PI * 2);
       previewCtx.fill();
       previewCtx.stroke();
       previewCtx.restore();
     }
 
     function drawFullMap() {
-      const visible = gameStarted && selectedMap === "fixed" && !gameOverEl.classList.contains("visible");
-      fullMapEl.classList.toggle("hidden", !visible);
-      if (!visible) return;
-
-      const cssWidth = 300;
-      const cssHeight = 178;
-      const dpr = window.devicePixelRatio || 1;
-      const pixelWidth = Math.floor(cssWidth * dpr);
-      const pixelHeight = Math.floor(cssHeight * dpr);
-      const needsResize = fullMapEl.width !== pixelWidth || fullMapEl.height !== pixelHeight;
-      const now = performance.now();
-      if (!needsResize && now - lastFullMapDrawAt < 120) return;
-      lastFullMapDrawAt = now;
-
-      if (needsResize) {
-        fullMapEl.width = pixelWidth;
-        fullMapEl.height = pixelHeight;
-      }
-
-      fullMapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      fullMapCtx.clearRect(0, 0, cssWidth, cssHeight);
-
-      const points = buildWorldTrackPoints();
-      if (points.length < 2) return;
-
-      const bounds = getPointBounds(points);
-      const padding = 10;
-      const mapScale = Math.min(
-        (cssWidth - padding * 2) / Math.max(1, bounds.maxX - bounds.minX),
-        (cssHeight - padding * 2) / Math.max(1, bounds.maxY - bounds.minY)
-      );
-      const offsetX = (cssWidth - (bounds.maxX - bounds.minX) * mapScale) / 2;
-      const offsetY = (cssHeight - (bounds.maxY - bounds.minY) * mapScale) / 2;
-      const mapPoint = (point) => ({
-        x: offsetX + (point.x - bounds.minX) * mapScale,
-        y: offsetY + (point.y - bounds.minY) * mapScale
-      });
-
-      fullMapCtx.save();
-      fullMapCtx.lineCap = "round";
-      fullMapCtx.lineJoin = "round";
-      fullMapCtx.strokeStyle = "rgba(245, 248, 248, 0.52)";
-      fullMapCtx.lineWidth = selectedMap === "fixed" ? 8 : 6;
-      fullMapCtx.beginPath();
-      points.forEach((point, index) => {
-        const mapped = mapPoint(point);
-        if (index === 0) fullMapCtx.moveTo(mapped.x, mapped.y);
-        else fullMapCtx.lineTo(mapped.x, mapped.y);
-      });
-      fullMapCtx.stroke();
-
-      fullMapCtx.strokeStyle = "rgba(28, 37, 42, 0.72)";
-      fullMapCtx.lineWidth = selectedMap === "fixed" ? 5 : 4;
-      fullMapCtx.stroke();
-
-      drawFullMapDot(mapPoint({ x: car.x, y: car.y }), "#f2c12f", 4.8);
-      aiOpponents.forEach((opponent) => {
-        drawFullMapDot(mapPoint({ x: opponent.x, y: opponent.y }), opponent.color, 3.8);
-      });
-      fullMapCtx.restore();
+      fullMapEl.classList.add("hidden");
     }
 
     function getPointBounds(points) {
@@ -4095,19 +4051,6 @@
         maxX: -Infinity,
         maxY: -Infinity
       });
-    }
-
-    function drawFullMapDot(point, color, radius) {
-      fullMapCtx.save();
-      fullMapCtx.globalAlpha = 0.86;
-      fullMapCtx.fillStyle = color;
-      fullMapCtx.strokeStyle = "#11181b";
-      fullMapCtx.lineWidth = 2;
-      fullMapCtx.beginPath();
-      fullMapCtx.arc(point.x, point.y, radius, 0, Math.PI * 2);
-      fullMapCtx.fill();
-      fullMapCtx.stroke();
-      fullMapCtx.restore();
     }
 
     function drawStartGrid() {
