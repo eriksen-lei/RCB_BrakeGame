@@ -314,15 +314,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: clamp(24px, 5vw, 64px);
+      padding: 28px;
       background:
-        linear-gradient(rgba(255, 216, 77, 0.12) 2px, transparent 2px),
-        linear-gradient(90deg, rgba(255, 216, 77, 0.12) 2px, transparent 2px),
-        linear-gradient(135deg, rgba(20, 25, 32, 0.98), rgba(32, 57, 48, 0.96) 55%, rgba(16, 21, 29, 0.98)),
-        #111820;
-      background-size: 32px 32px, 32px 32px, auto, auto;
+        linear-gradient(90deg, rgba(15, 0, 0, 0.52), rgba(0, 0, 0, 0.2) 42%, rgba(4, 0, 0, 0.72)),
+        linear-gradient(180deg, rgba(235, 39, 34, 0.2), rgba(30, 0, 0, 0.26)),
+        url("Resources/RCB Game_BG_V1.png") center / cover no-repeat,
+        #190202;
       color: var(--ui-white);
       z-index: 5;
+      overflow: hidden;
     }
 
     .start-screen::before {
@@ -331,11 +331,13 @@
       background:
         repeating-linear-gradient(
           0deg,
-          rgba(255, 255, 255, 0.035) 0 2px,
-          transparent 2px 6px
-        );
+          rgba(0, 0, 0, 0.42) 0 1px,
+          rgba(255, 65, 58, 0.08) 1px 3px,
+          transparent 3px 6px
+        ),
+        radial-gradient(circle at 50% 50%, transparent 0 44%, rgba(0, 0, 0, 0.34) 100%);
       content: "";
-      opacity: 0.55;
+      opacity: 0.72;
       pointer-events: none;
     }
 
@@ -345,32 +347,33 @@
 
     .menu-panel {
       position: relative;
-      width: min(420px, 100%);
-      max-height: calc(100vh - 56px);
+      width: min(488px, 100%);
+      max-height: calc(100vh - 40px);
       overflow-y: auto;
-      padding: 28px;
-      border: 4px solid #f8fbff;
+      padding: 24px 30px 30px;
+      border: 2px solid rgba(242, 73, 79, 0.92);
       border-radius: 0;
-      background:
-        linear-gradient(180deg, rgba(24, 31, 41, 0.98), rgba(11, 16, 23, 0.98));
+      background: rgba(0, 0, 0, 0.92);
       box-shadow:
-        0 0 0 4px #101820,
-        12px 12px 0 rgba(0, 0, 0, 0.72),
-        0 0 0 8px rgba(255, 216, 77, 0.72);
-      image-rendering: pixelated;
+        0 0 0 5px rgba(0, 0, 0, 0.78),
+        0 0 0 7px rgba(185, 45, 50, 0.82),
+        0 26px 42px rgba(0, 0, 0, 0.62);
+      z-index: 1;
     }
 
     .menu-panel::before {
       display: block;
       width: fit-content;
-      margin: 0 auto 18px;
-      padding: 7px 14px;
-      border: 3px solid #101820;
-      background: var(--ui-yellow);
-      color: #101820;
+      margin: 0 auto 16px;
+      padding: 0 14px;
+      border: 0;
+      background: transparent;
+      color: #ffffff;
       content: "MAIN MENU";
       font: 900 14px var(--ui-mono);
-      box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.72);
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.28);
+      box-shadow: none;
     }
 
     .menu-panel:has(#settingsMenu:not(.hidden))::before {
@@ -378,23 +381,46 @@
     }
 
     .menu-panel h1 {
-      margin: 0 0 8px;
-      color: var(--ui-yellow);
-      font-size: clamp(30px, 7vw, 44px);
+      margin: 0 auto 4px;
+      padding: 12px 18px 10px;
+      border: 2px solid rgba(226, 67, 73, 0.9);
+      background: #050505;
+      color: #ffffff;
+      font-size: 38px;
       font-family: var(--ui-mono);
       font-weight: 900;
       text-align: center;
-      letter-spacing: 0;
-      text-shadow:
-        3px 3px 0 #101820,
-        5px 5px 0 rgba(255, 138, 42, 0.75);
+      line-height: 0.95;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.18);
+    }
+
+    #menuTitle {
+      width: min(100%, 420px);
+      aspect-ratio: 602 / 122;
+      margin-bottom: 16px;
+      padding: 0;
+      border: 0;
+      background: url("Resources/menu-title-rcb-game-crop.png") center / contain no-repeat;
+      color: transparent;
+      font-size: 0;
+      line-height: 0;
+      text-shadow: none;
+    }
+
+    #menuTitle::after {
+      display: none;
+      content: "";
     }
 
     .menu-panel p {
-      margin: 0 0 18px;
-      color: var(--ui-muted);
-      font: 800 13px/1.55 var(--ui-mono);
+      margin: 18px auto 20px;
+      max-width: 360px;
+      color: rgba(255, 255, 255, 0.78);
+      font: 800 14px/1.45 var(--ui-mono);
       text-align: center;
+      text-transform: none;
     }
 
     .menu-view.hidden {
@@ -402,20 +428,29 @@
     }
 
     .menu-section {
-      margin-top: 16px;
-      padding: 12px;
-      border: 3px solid rgba(248, 251, 255, 0.2);
-      background: rgba(255, 255, 255, 0.045);
-      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.26);
+      position: relative;
+      margin-top: 22px;
+      padding: 22px 20px 18px;
+      border: 2px solid rgba(224, 58, 64, 0.88);
+      background: rgba(8, 8, 8, 0.86);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     }
 
     .menu-section strong {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--ui-white);
-      font: 900 13px var(--ui-mono);
+      display: inline-block;
+      position: absolute;
+      left: 50%;
+      top: -12px;
+      min-width: 132px;
+      padding: 0 16px;
+      background: #000000;
+      color: #ffffff;
+      font: 900 14px var(--ui-mono);
       font-weight: 900;
       text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transform: translateX(-50%);
     }
 
     .difficulty-buttons {
@@ -438,10 +473,17 @@
 
     .map-buttons .menu-button {
       width: 100%;
-      min-height: 52px;
+      min-height: 58px;
       font-size: 15px;
       text-align: center;
       justify-self: stretch;
+      line-height: 1.18;
+    }
+
+    .map-buttons .menu-button.active {
+      border-color: #df3b43;
+      background: #ffffff;
+      color: #111111;
     }
 
     .controller-status {
@@ -453,28 +495,29 @@
 
     .controller-dock {
       position: absolute;
-      left: clamp(18px, 3vw, 34px);
-      bottom: clamp(18px, 3vw, 34px);
+      left: 28px;
+      bottom: 28px;
       width: min(340px, calc(100vw - 36px));
       padding: 12px;
-      border: 3px solid rgba(248, 251, 255, 0.22);
-      background: rgba(8, 12, 16, 0.72);
-      box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(224, 58, 64, 0.72);
+      background: rgba(0, 0, 0, 0.72);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.42);
       z-index: 1;
     }
 
     .controller-dock strong {
       display: block;
       margin-bottom: 8px;
-      color: var(--ui-yellow);
+      color: #ffffff;
       font: 900 12px var(--ui-mono);
+      letter-spacing: 1px;
     }
 
     .controller-readout {
       min-width: 0;
       padding: 9px 10px;
-      border: 2px solid rgba(255, 255, 255, 0.18);
-      background: rgba(8, 12, 16, 0.58);
+      border: 1px solid rgba(224, 58, 64, 0.52);
+      background: rgba(8, 8, 8, 0.72);
       color: rgba(248, 251, 255, 0.78);
       font: 900 12px/1.35 var(--ui-mono);
     }
@@ -542,43 +585,42 @@
     }
 
     .menu-button {
-      min-height: 44px;
-      border: 3px solid #f8fbff;
+      min-height: 50px;
+      border: 2px solid #df3b43;
       border-radius: 0;
-      background: #18212b;
-      color: var(--ui-white);
-      font: 900 13px var(--ui-mono);
+      background: #ffffff;
+      color: #111111;
+      font: 900 14px var(--ui-mono);
       text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.78);
-      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease, filter 0.16s ease;
     }
 
     .menu-button.active,
     .menu-button.primary {
-      border-color: #101820;
-      background: var(--ui-yellow);
-      color: var(--ui-ink);
-      box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.78);
+      border-color: #ffffff;
+      background: #df362f;
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
     }
 
     .menu-button:hover,
     .autopilot-button:hover,
     .autopilot-toggle:hover,
     .pause-button:hover {
-      border-color: var(--ui-yellow);
-      background: #263342;
-      transform: translate(-2px, -2px);
-      box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.78);
+      border-color: #ffffff;
+      filter: brightness(1.08);
+      transform: translateY(-1px);
     }
 
     .menu-button.primary:hover,
     .menu-button.active:hover,
     .autopilot-button.active:hover,
     .pause-button.active:hover {
-      border-color: #101820;
-      background: #fff0a3;
-      color: var(--ui-ink);
+      border-color: #ffffff;
+      background: #f04840;
+      color: #ffffff;
     }
 
     .menu-button:focus-visible,
@@ -591,16 +633,26 @@
       outline-offset: 3px;
     }
 
+    #settingsButton {
+      border-color: rgba(224, 58, 64, 0.76);
+      background: #5f6364;
+      color: #ffffff;
+    }
+
+    #settingsButton:hover {
+      background: #727677;
+    }
+
     .menu-slider {
       width: 100%;
-      accent-color: var(--ui-yellow);
+      accent-color: #df362f;
     }
 
     .setting-row {
       display: flex;
       justify-content: space-between;
       margin-bottom: 6px;
-      color: var(--ui-muted);
+      color: rgba(255, 255, 255, 0.78);
       font: 800 13px var(--ui-mono);
     }
 
@@ -1134,6 +1186,39 @@
     }
 
     @media (max-width: 720px) {
+      .start-screen {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px 14px;
+        overflow-y: auto;
+      }
+
+      .menu-panel {
+        width: min(440px, 100%);
+        max-height: none;
+        padding: 20px 18px 24px;
+      }
+
+      .menu-panel h1 {
+        font-size: 30px;
+      }
+
+      #menuTitle {
+        width: min(100%, 390px);
+      }
+
+      .menu-section {
+        padding: 20px 12px 14px;
+      }
+
+      .controller-dock {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        width: min(440px, calc(100vw - 28px));
+        margin: 14px auto 0;
+      }
+
       .leaderboard {
         left: 10px;
         top: 10px;
@@ -1263,8 +1348,8 @@
   <div class="start-screen" id="startScreen">
     <div class="menu-panel">
       <div class="menu-view" id="mainMenu">
-      <h1 id="menuTitle">RCB Anchor Drift</h1>
-      <p id="menuSubtitle">入弯前按住刹车，出弯时松开。Space 可备用操作。</p>
+      <h1 id="menuTitle">RCB GAME</h1>
+      <p id="menuSubtitle">入弯前按住刹车，出弯时松开。</p>
 
       <div class="menu-section">
         <strong id="difficultyLabel">难度选择</strong>
@@ -1279,6 +1364,7 @@
         <strong id="trackLabel">赛道</strong>
         <div class="map-buttons">
           <button class="menu-button active" type="button" data-map="fixed">马来西亚雪邦国际赛道</button>
+          <button class="menu-button" type="button" data-map="simple">简单赛道</button>
         </div>
       </div>
 
@@ -1343,8 +1429,8 @@
         <div class="controller-readout" id="controllerReadout">
           <span class="controller-name" id="controllerName">CircuitPython HID</span>
           <span class="controller-state" id="controllerState">未连接</span>
-          <div class="controller-force" aria-label="按压力度">
-            <span id="controllerAxisY">按压力度</span>
+          <div class="controller-force" aria-label="按钮状态">
+            <span id="controllerAxisY">按钮状态</span>
             <span class="controller-force-track"><i class="controller-force-fill" id="controllerForceFill"></i></span>
           </div>
         </div>
@@ -1468,8 +1554,8 @@
       keyboard: false,
       pointer: false,
       gamepad: false,
-      gamepadAxisY: 0,
-      gamepadAxes: []
+      gamepadButton: false,
+      gamepadButtons: []
     };
 
     const camera = {
@@ -1568,14 +1654,15 @@
     let selectedLanguage = "zh";
     const translations = {
       zh: {
-        menuTitle: "RCB Anchor Drift",
-        menuSubtitle: "入弯前按住刹车，出弯时松开。Space 可备用操作。",
+        menuTitle: "RCB GAME",
+        menuSubtitle: "入弯前按住刹车，出弯时松开。",
         difficulty: "难度选择",
         easy: "简单",
         normal: "普通",
         hard: "困难",
         track: "赛道",
         fixedCircuit: "马来西亚雪邦国际赛道",
+        simpleCircuit: "简单赛道",
         practiceMode: "练习模式",
         raceMode: "比赛模式",
         settings: "设置",
@@ -1610,14 +1697,15 @@
         metersRemaining: "{meters}m 剩余"
       },
       en: {
-        menuTitle: "RCB Anchor Drift",
-        menuSubtitle: "Hold the brake before the corner, release on exit. Space is the backup control.",
+        menuTitle: "RCB GAME",
+        menuSubtitle: "Hold the brake before the corner, release on exit.",
         difficulty: "Difficulty",
         easy: "Easy",
         normal: "Normal",
         hard: "Hard",
         track: "Track",
         fixedCircuit: "Sepang International Circuit",
+        simpleCircuit: "Simple Circuit",
         practiceMode: "Practice Mode",
         raceMode: "Race Mode",
         settings: "Settings",
@@ -1691,6 +1779,46 @@
       { x: 1500, y: 640 },
       { x: 1545, y: 585 }
     ];
+
+    const simpleMapPoints = [
+      { x: 0, y: 0 },
+      { x: -220, y: 0 },
+      { x: -500, y: 280 },
+      { x: -500, y: 700 },
+      { x: -220, y: 980 },
+      { x: 340, y: 980 },
+      { x: 620, y: 700 },
+      { x: 900, y: 700 },
+      { x: 900, y: 280 },
+      { x: 620, y: 0 }
+    ];
+
+    const circuitMaps = {
+      fixed: {
+        scale: fixedMapScale,
+        origin: fixedMapOrigin,
+        start: fixedMapStart,
+        cornerRadius: fixedMapCornerRadius,
+        points: fixedMapPoints,
+        exitBoostTurn: 14,
+        exitBoostDistance: 90
+      },
+      simple: {
+        scale: 5.35,
+        origin: { x: 200, y: 490 },
+        start: fixedMapStart,
+        cornerRadius: 230,
+        points: simpleMapPoints
+      }
+    };
+
+    function isCircuitMap(map = selectedMap) {
+      return Boolean(circuitMaps[map]);
+    }
+
+    function getCircuitMapConfig(map = selectedMap) {
+      return circuitMaps[map] || circuitMaps.fixed;
+    }
 
     const generator = {
       point: { x: 0, y: 420 },
@@ -1785,7 +1913,7 @@
       race.shownMilestones = new Set();
       resetExpoState();
       resetPracticeLapCounter();
-      race.finishProgress = currentMode === "race" && selectedMap === "fixed" ? getFixedRaceFinishProgress() : null;
+      race.finishProgress = currentMode === "race" && isCircuitMap() ? getFixedRaceFinishProgress() : null;
       resetAiOpponents();
       gameOverEl.classList.remove("visible");
       updateRespawnBanner();
@@ -1814,7 +1942,7 @@
       boostPads = [];
       invalidateTrackGeometryCache();
 
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         buildFixedCircuitTrack();
         return;
       }
@@ -1863,7 +1991,7 @@
     }
 
     function getStartGridProgress(slotIndex) {
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         return fixedStartProgress - slotIndex * 56;
       }
       return 188 - slotIndex * 44;
@@ -1896,8 +2024,9 @@
     }
 
     function buildFixedCircuitTrack() {
-      const points = fixedMapPoints.map(toFixedMapWorldPoint);
-      const corners = points.map((point, index) => getFixedCorner(points, index));
+      const config = getCircuitMapConfig();
+      const points = config.points.map((point) => toFixedMapWorldPoint(point, config));
+      const corners = points.map((point, index) => getFixedCorner(points, index, config));
 
       for (let step = 0; step < corners.length; step += 1) {
         const i = (step + 1) % corners.length;
@@ -1939,23 +2068,26 @@
       numberFixedAnchors();
       fixedStartProgress = getFixedStartProgress();
       addFixedMapBoostPads();
-      addFixedBoostPadAfterTurn(14, 90);
+      if (Number.isFinite(config.exitBoostTurn)) {
+        addFixedBoostPadAfterTurn(config.exitBoostTurn, config.exitBoostDistance || 90);
+      }
     }
 
-    function toFixedMapWorldPoint(point) {
+    function toFixedMapWorldPoint(point, config = getCircuitMapConfig()) {
       return {
-        x: (point.x - fixedMapOrigin.x) * fixedMapScale + fixedMapStart.x,
-        y: (point.y - fixedMapOrigin.y) * fixedMapScale + fixedMapStart.y
+        x: (point.x - config.origin.x) * config.scale + config.start.x,
+        y: (point.y - config.origin.y) * config.scale + config.start.y
       };
     }
 
     function getFixedStartProgress() {
-      const start = fixedMapPoints[0];
-      const next = fixedMapPoints[1];
+      const config = getCircuitMapConfig();
+      const start = config.points[0];
+      const next = config.points[1];
       const startGridPoint = toFixedMapWorldPoint({
         x: start.x + (next.x - start.x) * 0.16,
         y: start.y + (next.y - start.y) * 0.16
-      });
+      }, config);
       return getTrackProgressAtPoint(startGridPoint.x, startGridPoint.y);
     }
 
@@ -1968,7 +2100,7 @@
       return getFixedStartFinishProgress() + metrics.total;
     }
 
-    function getFixedCorner(points, index) {
+    function getFixedCorner(points, index, config = getCircuitMapConfig()) {
       const previous = points[(index - 1 + points.length) % points.length];
       const current = points[index];
       const next = points[(index + 1) % points.length];
@@ -1988,10 +2120,11 @@
 
       const inLength = Math.hypot(current.x - previous.x, current.y - previous.y);
       const outLength = Math.hypot(next.x - current.x, next.y - current.y);
-      const maxTangent = Math.min(inLength, outLength) * (index === 31 ? 0.52 : 0.48);
+      const wideCorner = selectedMap === "fixed" && index === 31;
+      const maxTangent = Math.min(inLength, outLength) * (wideCorner ? 0.52 : 0.48);
       const tangentFactor = Math.max(0.12, Math.tan(turnAbs / 2));
-      const maxRadius = index === 31 ? fixedMapCornerRadius * 1.28 : fixedMapCornerRadius;
-      const minRadius = index === 31 ? 180 : 140;
+      const maxRadius = wideCorner ? config.cornerRadius * 1.28 : config.cornerRadius;
+      const minRadius = wideCorner ? 180 : 140;
       const radius = Math.max(minRadius, Math.min(maxRadius, maxTangent / tangentFactor));
       const tangentDistance = radius * tangentFactor;
       const arcStart = {
@@ -2079,7 +2212,7 @@
 
     function getFixedPointIndexDelta(a, b) {
       if (!Number.isFinite(a) || !Number.isFinite(b)) return Infinity;
-      const count = fixedMapPoints.length;
+      const count = getCircuitMapConfig().points.length;
       const delta = Math.abs(a - b);
       return Math.min(delta, count - delta);
     }
@@ -2303,14 +2436,14 @@
     }
 
     function ensureTrackAhead() {
-      if (selectedMap === "fixed") return;
+      if (isCircuitMap()) return;
       while (anchors.length - activeAnchorIndex < 5) {
         generateNextTrackSection();
       }
     }
 
     function ensureTrackToProgress(progress) {
-      if (selectedMap === "fixed") return;
+      if (isCircuitMap()) return;
       let metrics = buildTrackMetrics();
       while (metrics.total < progress) {
         generateNextTrackSection();
@@ -2349,7 +2482,7 @@
 
     function getNearestAnchor() {
       syncActiveAnchorToCar();
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         const reachableAnchor = getReachableFixedAnchor();
         if (reachableAnchor) return reachableAnchor;
       }
@@ -2556,14 +2689,14 @@
     }
 
     function resetPracticeLapCounter() {
-      const progress = selectedMap === "fixed" ? getTrackProgressAt(car.x, car.y) : 0;
+      const progress = isCircuitMap() ? getTrackProgressAt(car.x, car.y) : 0;
       practiceLap.completed = 0;
       practiceLap.lastProgress = progress;
       practiceLap.totalProgress = progress;
     }
 
     function updatePracticeLapCounter() {
-      if (selectedMap !== "fixed") return;
+      if (!isCircuitMap()) return;
 
       const metrics = buildTrackMetrics();
       if (!metrics.total) return;
@@ -2583,7 +2716,7 @@
     }
 
     function getPlayerRaceProgress() {
-      return selectedMap === "fixed" ? practiceLap.totalProgress : getTrackProgressAt(car.x, car.y);
+      return isCircuitMap() ? practiceLap.totalProgress : getTrackProgressAt(car.x, car.y);
     }
 
     function updateRaceState(dt) {
@@ -2596,7 +2729,7 @@
       race.elapsed += dt;
       const playerProgress = getPlayerRaceProgress();
 
-      if (selectedMap !== "fixed" && race.finishProgress === null && race.elapsed >= race.duration - race.finishLeadTime) {
+      if (!isCircuitMap() && race.finishProgress === null && race.elapsed >= race.duration - race.finishLeadTime) {
         race.finishProgress = playerProgress + race.finishAheadDistance;
         ensureTrackToProgress(race.finishProgress + 900);
       }
@@ -2751,7 +2884,7 @@
 
     function syncActiveAnchorToCar() {
       if (car.attached) return;
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         syncFixedActiveAnchorToCar();
         return;
       }
@@ -2774,7 +2907,7 @@
     function advanceActiveAnchor() {
       if (car.attached) return;
 
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         syncFixedActiveAnchorToCar();
         return;
       }
@@ -2841,7 +2974,7 @@
     }
 
     function applyStraightCentering(dt) {
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         applyFixedTrackCentering(dt);
         return;
       }
@@ -2950,7 +3083,7 @@
       const playerProgress = getTrackProgressAt(car.x, car.y);
 
       for (const opponent of aiOpponents) {
-        while (selectedMap !== "fixed" && opponent.progress > buildTrackMetrics().total - 1200) {
+        while (!isCircuitMap() && opponent.progress > buildTrackMetrics().total - 1200) {
           generateNextTrackSection();
         }
 
@@ -3161,7 +3294,7 @@
         }
       });
 
-      const headerHtml = currentMode === "endless" && selectedMap === "fixed"
+      const headerHtml = currentMode === "endless" && isCircuitMap()
         ? `<div class="rank-header"><span>${t("rank")}</span><span class="lap-counter">${t("lap")} ${practiceLap.completed + 1}</span></div>`
         : `<strong>${t("rank")}</strong>`;
 
@@ -3245,6 +3378,7 @@
       document.querySelector("[data-difficulty='normal']").textContent = t("normal");
       document.querySelector("[data-difficulty='hard']").textContent = t("hard");
       document.querySelector("[data-map='fixed']").textContent = t("fixedCircuit");
+      document.querySelector("[data-map='simple']").textContent = t("simpleCircuit");
       document.querySelectorAll("[data-language]").forEach((button) => {
         button.classList.toggle("active", button.dataset.language === selectedLanguage);
       });
@@ -3294,10 +3428,11 @@
         : brakeController.connected
           ? getControllerText("connected")
           : getControllerText("unsupported");
-      const y = Number.isFinite(input.gamepadAxes[1]) ? input.gamepadAxes[1] : 0;
-      const brakeForce = clamp(Math.max(0, y), 0, 1);
-      controllerAxisYEl.textContent = selectedLanguage === "zh" ? "按压力度" : "PRESSURE";
-      controllerForceFillEl.style.transform = `scaleX(${brakeForce.toFixed(3)})`;
+      const buttonActive = Boolean(input.gamepadButton);
+      controllerAxisYEl.textContent = selectedLanguage === "zh"
+        ? (buttonActive ? "按钮按下" : "按钮松开")
+        : (buttonActive ? "BUTTON ON" : "BUTTON OFF");
+      controllerForceFillEl.style.transform = `scaleX(${buttonActive ? 1 : 0})`;
       controllerScanButtonEl.textContent = getControllerText("scan");
     }
 
@@ -3314,24 +3449,27 @@
       input.keyboard = false;
       input.pointer = false;
       input.gamepad = false;
-      input.gamepadAxisY = 0;
-      input.gamepadAxes = [];
+      input.gamepadButton = false;
+      input.gamepadButtons = [];
       input.space = false;
     }
 
     function getBrakeGamepad() {
       if (typeof navigator.getGamepads !== "function") return null;
       const pads = Array.from(navigator.getGamepads()).filter(Boolean);
-      return pads.find((pad) => isTargetControllerName(pad.id)) || pads.find((pad) => pad.axes && pad.axes.length > 1) || null;
+      return pads.find((pad) => isTargetControllerName(pad.id)) || pads.find((pad) => pad.buttons && pad.buttons.length > 0) || null;
     }
 
-    function signedByte(value) {
-      return value > 127 ? value - 256 : value;
+    function getGamepadButtonStates(buttons) {
+      return Array.from(buttons || []).map((button) => {
+        if (typeof button === "number") return button > 0.5;
+        return Boolean(button && (button.pressed || button.value > 0.5));
+      });
     }
 
-    function setControllerAxes(axes, deviceName, source) {
-      input.gamepadAxes = axes;
-      input.gamepadAxisY = Number.isFinite(axes[1]) ? axes[1] : 0;
+    function setControllerButtons(buttons, deviceName, source) {
+      input.gamepadButtons = buttons;
+      input.gamepadButton = buttons.some(Boolean);
       brakeController.connected = true;
       brakeController.deviceName = deviceName || brakeController.targetName;
       brakeController.source = source || "";
@@ -3340,10 +3478,9 @@
 
     function handleHidInputReport(event) {
       const data = event.data;
-      if (!data || data.byteLength < 4) return;
-      const x = signedByte(data.getUint8(2)) / 127;
-      const y = signedByte(data.getUint8(3)) / 127;
-      setControllerAxes([x, y], event.device.productName, "HID");
+      if (!data || data.byteLength < 2) return;
+      const buttonState = data.getUint8(0) | (data.getUint8(1) << 8);
+      setControllerButtons([Boolean(buttonState & 1)], event.device.productName, "HID");
     }
 
     async function attachHidController(device) {
@@ -3373,8 +3510,7 @@
       let found = false;
       const gamepad = getBrakeGamepad();
       if (gamepad) {
-        const axes = Array.from(gamepad.axes || []).map((axis) => Number.isFinite(axis) ? axis : 0);
-        setControllerAxes(axes, gamepad.id, "GAMEPAD");
+        setControllerButtons(getGamepadButtonStates(gamepad.buttons), gamepad.id, "GAMEPAD");
         found = true;
       }
 
@@ -3400,8 +3536,8 @@
 
       brakeController.connected = Boolean(found);
       if (!found) {
-        input.gamepadAxes = [];
-        input.gamepadAxisY = 0;
+        input.gamepadButtons = [];
+        input.gamepadButton = false;
         brakeController.deviceName = brakeController.targetName;
         brakeController.source = "";
         brakeController.hidDevice = null;
@@ -3413,29 +3549,23 @@
 
     function updateGamepadBrakeInput() {
       const pad = getBrakeGamepad();
-      const axes = pad && pad.axes
-        ? Array.from(pad.axes).map((axis) => Number.isFinite(axis) ? axis : 0)
-        : [];
-      if (pad && axes.length) {
-        setControllerAxes(axes, pad.id, "GAMEPAD");
+      const buttons = pad ? getGamepadButtonStates(pad.buttons) : [];
+      if (pad && buttons.length) {
+        setControllerButtons(buttons, pad.id, "GAMEPAD");
       } else if (!brakeController.hidDevice) {
-        input.gamepadAxes = [];
-        input.gamepadAxisY = 0;
+        input.gamepadButtons = [];
+        input.gamepadButton = false;
         brakeController.connected = false;
         brakeController.deviceName = brakeController.targetName;
         brakeController.source = "";
       }
-      const axisY = input.gamepadAxisY;
       if (!gameStarted || isPaused || race.finished || autopilot.enabled || gameOverEl.classList.contains("visible")) {
         setBrakeInputSource("gamepad", false);
         updateControllerStatusDisplay();
         return;
       }
 
-      const pressThreshold = 0.45;
-      const releaseThreshold = 0.25;
-      const active = input.gamepad ? axisY > releaseThreshold : axisY > pressThreshold;
-      setBrakeInputSource("gamepad", active);
+      setBrakeInputSource("gamepad", input.gamepadButton);
       updateControllerStatusDisplay();
     }
 
@@ -3625,7 +3755,7 @@
     }
 
     function selectMap(map) {
-      selectedMap = "fixed";
+      selectedMap = isCircuitMap(map) ? map : "fixed";
       document.querySelectorAll("[data-map]").forEach((button) => {
         button.classList.toggle("active", button.dataset.map === selectedMap);
       });
@@ -3713,7 +3843,7 @@
       car.respawnTimer = 0;
       car.respawnTarget = null;
       clearBrakeInput();
-      if (selectedMap === "fixed") {
+      if (isCircuitMap()) {
         practiceLap.lastProgress = getTrackProgressAt(car.x, car.y);
         practiceLap.totalProgress = practiceLap.completed * buildTrackMetrics().total + practiceLap.lastProgress;
       }
@@ -3798,13 +3928,13 @@
       const metrics = buildTrackMetrics();
       if (!metrics.total) return;
 
-      const spacing = selectedMap === "fixed" ? tracksideLogoConfig.spacing.fixed : tracksideLogoConfig.spacing.infinite;
+      const spacing = isCircuitMap() ? tracksideLogoConfig.spacing.fixed : tracksideLogoConfig.spacing.infinite;
       const playerProgress = gameStarted ? getTrackProgressAt(car.x, car.y) : 0;
-      const start = selectedMap === "fixed" ? 520 : Math.max(0, Math.floor((playerProgress - 1300) / spacing) * spacing);
-      const end = selectedMap === "fixed" ? metrics.total : playerProgress + 3600;
+      const start = isCircuitMap() ? 520 : Math.max(0, Math.floor((playerProgress - 1300) / spacing) * spacing);
+      const end = isCircuitMap() ? metrics.total : playerProgress + 3600;
 
       for (let progress = start; progress <= end; progress += spacing) {
-        if (selectedMap !== "fixed") ensureTrackToProgress(progress + 600);
+        if (!isCircuitMap()) ensureTrackToProgress(progress + 600);
         const index = Math.round(progress / spacing);
         drawTracksideLogoAtProgress(progress, index);
       }
@@ -3965,24 +4095,25 @@
       previewCtx.fillStyle = "rgba(28, 37, 42, 0.92)";
       previewCtx.fillRect(0, 0, cssSize, cssSize);
 
-      const points = selectedMap === "fixed" ? buildWorldTrackPoints() : buildVisibleWorldTrackPoints();
+      const circuit = isCircuitMap();
+      const points = circuit ? buildWorldTrackPoints() : buildVisibleWorldTrackPoints();
       if (points.length > 1) {
         const bounds = getPointBounds(points);
-        const padding = selectedMap === "fixed" ? 18 : 8;
-        const mapScale = selectedMap === "fixed"
+        const padding = circuit ? 18 : 8;
+        const mapScale = circuit
           ? Math.min(
             (cssSize - padding * 2) / Math.max(1, bounds.maxX - bounds.minX),
             (cssSize - padding * 2) / Math.max(1, bounds.maxY - bounds.minY)
           )
           : null;
-        const offsetX = selectedMap === "fixed"
+        const offsetX = circuit
           ? (cssSize - (bounds.maxX - bounds.minX) * mapScale) / 2
           : 0;
-        const offsetY = selectedMap === "fixed"
+        const offsetY = circuit
           ? (cssSize - (bounds.maxY - bounds.minY) * mapScale) / 2
           : 0;
         const mapPoint = (worldPoint) => {
-          if (selectedMap === "fixed") {
+          if (circuit) {
             return {
               x: offsetX + (worldPoint.x - bounds.minX) * mapScale,
               y: offsetY + (worldPoint.y - bounds.minY) * mapScale
@@ -3998,7 +4129,7 @@
         previewCtx.lineCap = "round";
         previewCtx.lineJoin = "round";
         previewCtx.strokeStyle = "rgba(238, 243, 244, 0.95)";
-        previewCtx.lineWidth = selectedMap === "fixed" ? 8 : 14;
+        previewCtx.lineWidth = circuit ? 8 : 14;
         previewCtx.beginPath();
         points.forEach((point, index) => {
           const mapped = mapPoint(point);
@@ -4008,12 +4139,12 @@
         previewCtx.stroke();
 
         previewCtx.strokeStyle = "rgba(58, 68, 74, 0.95)";
-        previewCtx.lineWidth = selectedMap === "fixed" ? 5 : 9;
+        previewCtx.lineWidth = circuit ? 5 : 9;
         previewCtx.stroke();
 
-        drawPreviewDot(mapPoint({ x: car.x, y: car.y }), "#f2c12f", selectedMap === "fixed" ? 5 : 5.8);
+        drawPreviewDot(mapPoint({ x: car.x, y: car.y }), "#f2c12f", circuit ? 5 : 5.8);
         aiOpponents.forEach((opponent) => {
-          drawPreviewDot(mapPoint({ x: opponent.x, y: opponent.y }), opponent.color, selectedMap === "fixed" ? 3.8 : 4.7);
+          drawPreviewDot(mapPoint({ x: opponent.x, y: opponent.y }), opponent.color, circuit ? 3.8 : 4.7);
         });
       }
 
@@ -4073,13 +4204,13 @@
     }
 
     function drawStartFinishLine() {
-      if (selectedMap !== "fixed") return;
+      if (!isCircuitMap()) return;
       drawCheckeredLineAtProgress(getFixedStartFinishProgress(), "#ffd84d");
     }
 
     function drawFinishLine() {
       if (currentMode !== "race" || race.finishProgress === null) return;
-      if (selectedMap === "fixed") return;
+      if (isCircuitMap()) return;
       drawCheckeredLineAtProgress(race.finishProgress, "#ffd84d");
     }
 
@@ -4183,14 +4314,14 @@
 
     function getTrackPointAtProgress(progress) {
       let metrics = buildTrackMetrics();
-      while (selectedMap !== "fixed" && progress > metrics.total - 1200) {
+      while (!isCircuitMap() && progress > metrics.total - 1200) {
         generateNextTrackSection();
         metrics = buildTrackMetrics();
       }
 
       const points = metrics.points;
       const cumulative = metrics.cumulative;
-      const target = selectedMap === "fixed"
+      const target = isCircuitMap()
         ? ((progress % metrics.total) + metrics.total) % metrics.total
         : Math.max(0, Math.min(progress, metrics.total));
       let low = 0;
@@ -4396,7 +4527,7 @@
 
       const worldPoints = buildWorldTrackPoints();
       const edgeOffset = road.width / 2 - 14;
-      const closed = selectedMap === "fixed";
+      const closed = isCircuitMap();
       const left = buildOffsetTrackPoints(worldPoints, edgeOffset, closed);
       const right = buildOffsetTrackPoints(worldPoints, -edgeOffset, closed);
 
@@ -4750,8 +4881,8 @@
         const w = Math.min(560, window.innerWidth - 36);
         const h = 74;
         let x = window.innerWidth / 2 - w / 2;
-        const fullMapTop = selectedMap === "fixed" ? window.innerHeight - 10 - 178 : window.innerHeight - 116;
-        let y = selectedMap === "fixed"
+        const fullMapTop = isCircuitMap() ? window.innerHeight - 10 - 178 : window.innerHeight - 116;
+        let y = isCircuitMap()
           ? fullMapTop + (178 - h) / 2
           : window.innerHeight - 116;
         const carScreen = worldToScreen(car.x, car.y);
